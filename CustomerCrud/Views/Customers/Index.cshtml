@@ -1,0 +1,66 @@
+﻿@model IEnumerable<CustomerCrud.Models.Customers>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.CustomerNo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CustomerName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CustomerAddress)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.BusinessStart)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CreditLimit)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CustomerType)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.CustomerNo)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CustomerName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CustomerAddress)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.BusinessStart)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CreditLimit)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CustomerType.CustomerTypeId)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.CustomersId">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.CustomersId">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.CustomersId">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

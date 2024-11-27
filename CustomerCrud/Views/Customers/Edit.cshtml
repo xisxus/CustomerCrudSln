@@ -1,0 +1,60 @@
+﻿@model CustomerCrud.Models.Customers
+
+@{
+    ViewData["Title"] = "Edit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Edit</h1>
+
+<h4>Customers</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="CustomersId" />
+            <div class="form-group">
+                <label asp-for="CustomerNo" class="control-label"></label>
+                <input asp-for="CustomerNo" class="form-control" />
+                <span asp-validation-for="CustomerNo" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CustomerName" class="control-label"></label>
+                <input asp-for="CustomerName" class="form-control" />
+                <span asp-validation-for="CustomerName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CustomerAddress" class="control-label"></label>
+                <input asp-for="CustomerAddress" class="form-control" />
+                <span asp-validation-for="CustomerAddress" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="BusinessStart" class="control-label"></label>
+                <input asp-for="BusinessStart" class="form-control" />
+                <span asp-validation-for="BusinessStart" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CustomerTypeId" class="control-label"></label>
+                <select asp-for="CustomerTypeId" class="form-control" asp-items="ViewBag.CustomerTypeId"></select>
+                <span asp-validation-for="CustomerTypeId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CreditLimit" class="control-label"></label>
+                <input asp-for="CreditLimit" class="form-control" />
+                <span asp-validation-for="CreditLimit" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
