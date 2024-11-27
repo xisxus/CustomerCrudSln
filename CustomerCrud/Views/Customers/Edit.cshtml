@@ -1,60 +1,162 @@
-﻿@model CustomerCrud.Models.Customers
+﻿@model CustomerCreateViewModel
 
-@{
-    ViewData["Title"] = "Edit";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h2>Edit Customer</h2>
+        </div>
+        <div class="card-body">
+            <form asp-action="Edit" method="post">
+                <input type="hidden" asp-for="CustomersId" />
 
-<h1>Edit</h1>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label>Customer Number</label>
+                        <input type="text" class="form-control" asp-for="CustomerNo" readonly />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="CustomerName">Customer Name</label>
+                        <input asp-for="CustomerName" class="form-control" />
+                        <span asp-validation-for="CustomerName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="CustomerTypeId">Customer Type</label>
+                        <div class="input-group">
+                            <select asp-for="CustomerTypeId" asp-items="ViewBag.CustomerTypes" class="form-control">
+                                <option value="">Select Customer Type</option>
+                            </select>
+                            <button type="button" class="btn btn-outline-secondary ml-2" id="addCustomerTypeBtn">
+                                <i class="fa fa-plus">+</i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-<h4>Customers</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="CustomersId" />
-            <div class="form-group">
-                <label asp-for="CustomerNo" class="control-label"></label>
-                <input asp-for="CustomerNo" class="form-control" />
-                <span asp-validation-for="CustomerNo" class="text-danger"></span>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="CustomerAddress">Primary Address</label>
+                        <input asp-for="CustomerAddress" class="form-control" />
+                        <span asp-validation-for="CustomerAddress" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="CreditLimit">Credit Limit</label>
+                        <input asp-for="CreditLimit" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <h4>Delivery Addresses</h4>
+                    <div id="addressList">
+                        @for (int i = 0; i < Model.Addresses.Count; i++)
+                        {
+                            <div class="address-item input-group mb-2">
+                                <input type="text"
+                                       name="Addresses[@i].AddressName"
+                                       value="@Model.Addresses[i].AddressName"
+                                       class="form-control"
+                                       placeholder="Enter Address" />
+                                <button type="button" class="btn btn-danger remove-address">
+                                    <i class="fa fa-trash">X</i>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                    <button type="button" id="addAddressBtn" class="btn btn-secondary mt-2">
+                        <i class="fa fa-plus"></i> Add Address
+                    </button>
+                </div>
+
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Customer Type Modal -->
+    <div class="modal fade" id="customerTypeModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create Customer Type</h5>
+                   
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Customer Type Name</label>
+                        <input type="text" id="newCustomerTypeName" class="form-control" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                  
+                    <button type="button" id="saveCustomerTypeBtn" class="btn btn-primary">Save</button>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="CustomerName" class="control-label"></label>
-                <input asp-for="CustomerName" class="form-control" />
-                <span asp-validation-for="CustomerName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CustomerAddress" class="control-label"></label>
-                <input asp-for="CustomerAddress" class="form-control" />
-                <span asp-validation-for="CustomerAddress" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="BusinessStart" class="control-label"></label>
-                <input asp-for="BusinessStart" class="form-control" />
-                <span asp-validation-for="BusinessStart" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CustomerTypeId" class="control-label"></label>
-                <select asp-for="CustomerTypeId" class="form-control" asp-items="ViewBag.CustomerTypeId"></select>
-                <span asp-validation-for="CustomerTypeId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CreditLimit" class="control-label"></label>
-                <input asp-for="CreditLimit" class="form-control" />
-                <span asp-validation-for="CreditLimit" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function () {
+            let addressCounter = @Model.Addresses.Count;
+
+            $('#addAddressBtn').click(function () {
+                const addressHtml = `
+                    <div class="address-item mb-2">
+                        <div class="input-group">
+                            <input type="text"
+                                   name="Addresses[${addressCounter}].AddressName"
+                                   class="form-control"
+                                   placeholder="Enter Address" />
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-danger remove-address">
+                                    <i class="fa fa-trash">X</i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
+                $('#addressList').append(addressHtml);
+                addressCounter++;
+            });
+
+            // Remove address
+            $(document).on('click', '.remove-address', function () {
+                $(this).closest('.address-item').remove();
+            });
+
+            // Show Customer Type Modal
+            $('#addCustomerTypeBtn').click(function () {
+                $('#customerTypeModal').modal('show');
+            });
+
+            // Save new Customer Type
+            $('#saveCustomerTypeBtn').click(function () {
+                const typeName = $('#newCustomerTypeName').val();
+
+                $.ajax({
+                    url: '@Url.Action("CreateCustomerType", "Customers")',
+                    type: 'POST',
+                    data: { customerTypeName: typeName },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#CustomerTypeId').append(
+                                `<option value="${response.customerTypeId}">${response.customerTypeName}</option>`
+                            );
+                            $('#CustomerTypeId').val(response.customerTypeId);
+                            $('#customerTypeModal').modal('hide');
+                            $('#newCustomerTypeName').val('');
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('Error creating customer type.');
+                    }
+                });
+            });
+        });
+    </script>
 }

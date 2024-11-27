@@ -1,66 +1,79 @@
-﻿@model IEnumerable<CustomerCrud.Models.Customers>
+﻿<div class="container">
+    <h2>Customers List</h2>
 
-@{
-    ViewData["Title"] = "Index";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-}
+    <div class="mb-3">
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fa fa-plus"></i> Add Customer
+        </a>
+    </div>
 
-<h1>Index</h1>
+    <div class="alert alert-info">
+        Showing results @Model.StartIndex to @Model.EndIndex of @Model.TotalCustomers total customers.
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.CustomerNo)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CustomerName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CustomerAddress)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.BusinessStart)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CreditLimit)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CustomerType)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.CustomerNo)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CustomerName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CustomerAddress)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.BusinessStart)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreditLimit)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CustomerType.CustomerTypeId)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.CustomersId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.CustomersId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.CustomersId">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Customer No</th>
+                <th>Customer Name</th>
+                <th>Customer Type</th>
+                <th>Customer Address</th>
+                <th>Credit Limit</th>
+                <th>Delivery Addresses</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var customer in Model.Customers)
+            {
+                <tr>
+                    <td>@customer.CustomerNo</td>
+                    <td>@customer.CustomerName</td>
+                    <td>@customer.CustomerTypeName</td>
+                    <td>@customer.CustomerAddress</td>
+                    <td>@customer.CreditLimit?.ToString("C")</td>
+                    <td>@customer.AdditionalAddressesCount</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@customer.CustomerId" class="btn btn-sm btn-warning">
+                            <i class="fa fa-edit"></i> Edit
+                        </a>
+                        <a asp-action="Details" asp-route-id="@customer.CustomerId" class="btn btn-sm btn-info">
+                            <i class="fa fa-eye"></i> View
+                        </a>
+                        <form asp-action="Delete" asp-route-id="@customer.CustomerId" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-danger"
+                                    onclick="return confirm('Are you sure you want to delete this customer?');">
+                                <i class="fa fa-trash"></i> Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <nav>
+        <ul class="pagination">
+            @if (Model.CurrentPage > 1)
+            {
+                <li class="page-item">
+                    <a asp-action="Index" asp-route-page="@(Model.CurrentPage - 1)" asp-route-pageSize="@Model.PageSize" class="page-link">Previous</a>
+                </li>
+            }
+
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                    <a asp-action="Index" asp-route-page="@i" asp-route-pageSize="@Model.PageSize" class="page-link">@i</a>
+                </li>
+            }
+
+            @if (Model.CurrentPage < Model.TotalPages)
+            {
+                <li class="page-item">
+                    <a asp-action="Index" asp-route-page="@(Model.CurrentPage + 1)" asp-route-pageSize="@Model.PageSize" class="page-link">Next</a>
+                </li>
+            }
+        </ul>
+    </nav>
+</div>

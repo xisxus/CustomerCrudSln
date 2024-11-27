@@ -4,9 +4,12 @@ namespace CustomerCrud.ViewModels
 {
     public class CustomerCreateViewModel
     {
+        public int? CustomersId { get; set; }
         [Required(ErrorMessage = "Customer name is Required.")]
         [Display(Name = "Customer Name")]
         public string CustomerName { get; set; }
+        public string? CustomerNo { get; set; }
+
 
         [Required(ErrorMessage = "Address is Required.")]
         public string CustomerAddress { get; set; }

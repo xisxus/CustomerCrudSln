@@ -1,55 +1,66 @@
-﻿@model CustomerCrud.Models.Customers
+﻿@model CustomerDetailsViewModel
 
-@{
-    ViewData["Title"] = "Details";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-}
+<div class="container py-4">
+    <h2 class="text-center mb-4">Customer Details</h2>
 
-<h1>Details</h1>
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label>Customer Number</label>
+                <input type="text" class="form-control" value="@Model.CustomerNo" readonly />
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label>Customer Name</label>
+                <input type="text" class="form-control" value="@Model.CustomerName" readonly />
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label>Customer Type</label>
+                <input type="text" class="form-control" value="@Model.CustomerTypeName" readonly />
+            </div>
+        </div>
+    </div>
 
-<div>
-    <h4>Customers</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CustomerNo)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CustomerNo)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CustomerName)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CustomerName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CustomerAddress)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CustomerAddress)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.BusinessStart)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.BusinessStart)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CreditLimit)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CreditLimit)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CustomerType)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CustomerType.CustomerTypeId)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.CustomersId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>Customer Address</label>
+                <input type="text" class="form-control" value="@Model.CustomerAddress" readonly />
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>Credit Limit</label>
+                <input type="text" class="form-control" value="@Model.CreditLimit" readonly />
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Addresses -->
+    <div class="mb-4">
+        <h4>Delivery Addresses</h4>
+        @if (Model.Addresseslo != null && Model.Addresseslo.Any())
+        {
+            <ul class="list-group">
+                @foreach (var address in Model.Addresseslo)
+                {
+                    <li class="list-group-item">
+                        @address.AddressName
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p>No delivery addresses found.</p>
+        }
+    </div>
+
+    <!-- Back Button -->
+    <div class="text-center">
+        <a asp-action="Index" class="btn btn-secondary px-4">Back to List</a>
+    </div>
 </div>

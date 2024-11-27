@@ -20,31 +20,75 @@ namespace CustomerCrud.Controllers
             _context = context;
         }
 
-        // GET: Customers
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 5)
         {
-            var appDbContext = _context.Customers.Include(c => c.CustomerType);
-            return View(await appDbContext.ToListAsync());
-        }
-
-        // GET: Customers/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var totalCustomers = await _context.Customers.CountAsync();
 
             var customers = await _context.Customers
                 .Include(c => c.CustomerType)
-                .FirstOrDefaultAsync(m => m.CustomersId == id);
-            if (customers == null)
+                .Include(c => c.AddressList)
+                .Select(c => new CustomerListViewModel
+                {
+                    CustomerId = c.CustomersId,
+                    CustomerName = c.CustomerName,
+                    CustomerNo = c.CustomerNo,
+                    CustomerTypeName = c.CustomerType.CustomerTypeName,
+                    CustomerAddress = c.CustomerAddress,
+                    CreditLimit = c.CreditLimit,
+                    AdditionalAddressesCount = c.AddressList.Count
+                })
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var startIndex = (page - 1) * pageSize + 1;
+            var endIndex = Math.Min(page * pageSize, totalCustomers);
+
+            var viewModel = new CustomerIndexViewModel
+            {
+                Customers = customers,
+                TotalCustomers = totalCustomers,
+                CurrentPage = page,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling((double)totalCustomers / pageSize),
+                StartIndex = startIndex,
+                EndIndex = endIndex
+            };
+
+            return View(viewModel);
+        }
+
+
+
+       
+        public IActionResult Details(int id)
+        {
+            var customer = _context.Customers
+                .Include(c => c.AddressList)
+                .Include(c => c.CustomerType)
+                .FirstOrDefault(c => c.CustomersId == id);
+
+            if (customer == null)
             {
                 return NotFound();
             }
 
-            return View(customers);
+            var viewModel = new CustomerDetailsViewModel
+            {
+                CustomerNo = customer.CustomerNo,
+                CustomerName = customer.CustomerName,
+                CustomerTypeName = customer.CustomerType.CustomerTypeName,
+                CustomerAddress = customer.CustomerAddress,
+                CreditLimit = customer.CreditLimit,
+                Addresseslo = customer.AddressList.Select(a => new AddressViewModel
+                {
+                    AddressName = a.AddressName
+                }).ToList()
+            };
+
+            return View(viewModel);
         }
+
 
 
 
@@ -57,12 +101,20 @@ namespace CustomerCrud.Controllers
             // Pre-generate customer number for the form
             ViewBag.CustomerNumber = GenerateCustomerNumber();
 
-            return View(new CustomerCreateViewModel());
+            var viewModel = new CustomerCreateViewModel();
+            // Optionally, add an initial empty address if you want
+            viewModel.Addresses.Add(new AddressViewModel());
+
+            return View(viewModel);
         }
 
         [HttpPost]
         public async Task<IActionResult> Create(CustomerCreateViewModel viewModel)
         {
+            viewModel.Addresses = viewModel.Addresses
+           .Where(a => !string.IsNullOrWhiteSpace(a.AddressName))
+           .ToList();
+
             if (!ModelState.IsValid)
             {
                 ViewBag.CustomerTypes = new SelectList(_context.CustomerTypes,
@@ -89,6 +141,8 @@ namespace CustomerCrud.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+
         [HttpPost]
         public async Task<JsonResult> CreateCustomerType(string customerTypeName)
         {
@@ -135,58 +189,82 @@ namespace CustomerCrud.Controllers
 
 
 
-        // GET: Customers/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
+            var customer = await _context.Customers
+                .Include(c => c.AddressList)
+                .FirstOrDefaultAsync(c => c.CustomersId == id);
+
+            if (customer == null)
             {
                 return NotFound();
             }
 
-            var customers = await _context.Customers.FindAsync(id);
-            if (customers == null)
+            ViewBag.CustomerTypes = new SelectList(_context.CustomerTypes,
+                "CustomerTypeId", "CustomerTypeName", customer.CustomerTypeId);
+
+            var viewModel = new CustomerCreateViewModel
             {
-                return NotFound();
-            }
-            ViewData["CustomerTypeId"] = new SelectList(_context.CustomerTypes, "CustomerTypeId", "CustomerTypeId", customers.CustomerTypeId);
-            return View(customers);
+                CustomerNo = customer.CustomerNo,
+                CustomerName = customer.CustomerName,
+                CustomerAddress = customer.CustomerAddress,
+                BusinessStart = customer.BusinessStart,
+                CreditLimit = customer.CreditLimit,
+                CustomerTypeId = customer.CustomerTypeId,
+                Addresses = customer.AddressList
+                    .Select(a => new AddressViewModel { AddressName = a.AddressName })
+                    .ToList()
+            };
+
+            return View(viewModel);
         }
 
-        // POST: Customers/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("CustomersId,CustomerNo,CustomerName,CustomerAddress,BusinessStart,CustomerTypeId,CreditLimit")] Customers customers)
+        public async Task<IActionResult> Edit(int id, CustomerCreateViewModel viewModel)
         {
-            if (id != customers.CustomersId)
+            if (id <= 0)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            viewModel.Addresses = viewModel.Addresses
+                .Where(a => !string.IsNullOrWhiteSpace(a.AddressName))
+                .ToList();
+
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(customers);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CustomersExists(customers.CustomersId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                ViewBag.CustomerTypes = new SelectList(_context.CustomerTypes,
+                    "CustomerTypeId", "CustomerTypeName", viewModel.CustomerTypeId);
+                return View(viewModel);
             }
-            ViewData["CustomerTypeId"] = new SelectList(_context.CustomerTypes, "CustomerTypeId", "CustomerTypeId", customers.CustomerTypeId);
-            return View(customers);
+
+            var customer = await _context.Customers
+                .Include(c => c.AddressList)
+                .FirstOrDefaultAsync(c => c.CustomersId == id);
+
+            if (customer == null)
+            {
+                return NotFound();
+            }
+
+            customer.CustomerName = viewModel.CustomerName;
+            customer.CustomerAddress = viewModel.CustomerAddress;
+            customer.BusinessStart = viewModel.BusinessStart;
+            customer.CreditLimit = viewModel.CreditLimit;
+            customer.CustomerTypeId = viewModel.CustomerTypeId;
+
+            // Update addresses
+            customer.AddressList.Clear();
+            foreach (var address in viewModel.Addresses)
+            {
+                customer.AddressList.Add(new Address { AddressName = address.AddressName });
+            }
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
         }
+
 
         // GET: Customers/Delete/5
         public async Task<IActionResult> Delete(int? id)

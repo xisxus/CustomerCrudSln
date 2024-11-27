@@ -1,9 +1,10 @@
 ﻿@model CustomerCreateViewModel
 
-<div class="container">
-    <h2>Create Customer</h2>
+<div class="container py-4">
+    <h2 class="text-center mb-4">Create Customer</h2>
     <form asp-action="Create" method="post">
-        <div class="row">
+        <!-- First Row -->
+        <div class="row mb-3">
             <div class="col-md-4">
                 <div class="form-group">
                     <label>Customer Number</label>
@@ -21,25 +22,22 @@
                 <div class="form-group">
                     <label asp-for="CustomerTypeId">Customer Type</label>
                     <div class="input-group">
-                        <select asp-for="CustomerTypeId"
-                                asp-items="ViewBag.CustomerTypes"
-                                class="form-control">
+                        <select asp-for="CustomerTypeId" asp-items="ViewBag.CustomerTypes" class="form-control">
                             <option>Select Customer Type</option>
                         </select>
-                        <div class="input-group-append">
-                            <button type="button" class="btn btn-outline-secondary" id="addCustomerTypeBtn">
-                                <i class="fa fa-plus"></i>
-                            </button>
-                        </div>
+                        <button type="button" class="btn btn-outline-secondary" id="addCustomerTypeBtn">
+                            <i class="fa fa-plus">+</i>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="row">
+        <!-- Second Row -->
+        <div class="row mb-3">
             <div class="col-md-6">
                 <div class="form-group">
-                    <label asp-for="CustomerAddress">Primary Address</label>
+                    <label asp-for="CustomerAddress">Customer Address</label>
                     <input asp-for="CustomerAddress" class="form-control" />
                     <span asp-validation-for="CustomerAddress" class="text-danger"></span>
                 </div>
@@ -52,18 +50,30 @@
             </div>
         </div>
 
-        <div id="addressContainer">
-            <h4>Additional Addresses</h4>
+        <!-- Address List -->
+        <div id="addressContainer" class="mb-4">
+            <h4 class="mb-3">Delivery Addresses</h4>
             <div id="addressList">
-                <!-- Dynamic addresses will be added here -->
+                @for (int i = 0; i < Model.Addresses.Count; i++)
+                {
+                    <div class="address-item mb-2">
+                        <div class="input-group">
+                            <input type="text" name="Addresses[@i].AddressName" value="@Model.Addresses[i].AddressName" class="form-control" placeholder="Enter Address" />
+                            <button type="button" class="btn btn-danger remove-address">
+                                <i class="fa fa-trash">X</i>
+                            </button>
+                        </div>
+                    </div>
+                }
             </div>
             <button type="button" id="addAddressBtn" class="btn btn-secondary">
                 <i class="fa fa-plus"></i> Add Address
             </button>
         </div>
 
-        <div class="form-group mt-3">
-            <button type="submit" class="btn btn-primary">Create Customer</button>
+        <!-- Submit -->
+        <div class="form-group text-center">
+            <button type="submit" class="btn btn-primary px-4">Create Customer</button>
         </div>
     </form>
 
@@ -73,7 +83,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Create Customer Type</h5>
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                   
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
@@ -82,7 +92,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                   
                     <button type="button" id="saveCustomerTypeBtn" class="btn btn-primary">Save</button>
                 </div>
             </div>
@@ -92,57 +102,47 @@
 
 @section Scripts {
     <script>
-        $(document).ready(function() {
-            let addressCounter = 0;
+        $(document).ready(function () {
+            let addressCounter = @Model.Addresses.Count;
 
-            // Add Address Dynamic
-            $('#addAddressBtn').click(function() {
-                addressCounter++;
+            $('#addAddressBtn').click(function () {
                 const addressHtml = `
-                    <div class="address-item mb-2">
-                        <div class="input-group">
-                            <input type="text" name="Addresses[${addressCounter}].AddressName" 
-                                   class="form-control" placeholder="Enter Address" />
-                            <div class="input-group-append">
-                                <button type="button" class="btn btn-danger remove-address">
-                                    <i class="fa fa-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>`;
+                            <div class="address-item mb-2">
+                                <div class="input-group">
+                                    <input type="text" name="Addresses[${addressCounter}].AddressName" class="form-control" placeholder="Enter Address" />
+                                    <button type="button" class="btn btn-danger remove-address">
+                                        <i class="fa fa-trash">X</i>
+                                    </button>
+                                </div>
+                            </div>`;
                 $('#addressList').append(addressHtml);
+                addressCounter++;
             });
 
-            // Remove Address
-            $(document).on('click', '.remove-address', function() {
+            $(document).on('click', '.remove-address', function () {
                 $(this).closest('.address-item').remove();
             });
 
-            // Add Customer Type Modal
-            $('#addCustomerTypeBtn').click(function() {
+            $('#addCustomerTypeBtn').click(function () {
                 $('#customerTypeModal').modal('show');
             });
 
-            // Save Customer Type
-            $('#saveCustomerTypeBtn').click(function() {
+            $('#saveCustomerTypeBtn').click(function () {
                 const typeName = $('#newCustomerTypeName').val();
-                
+
                 $.ajax({
                     url: '@Url.Action("CreateCustomerType", "Customers")',
                     type: 'POST',
                     data: { customerTypeName: typeName },
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success) {
-                            // Append new option to dropdown
-                            $('#CustomerTypeId').append(
-                                `<option value="${response.customerTypeId}">${typeName}</option>`
-                            );
+                            $('#CustomerTypeId').append(`<option value="${response.customerTypeId}">${typeName}</option>`);
                             $('#CustomerTypeId').val(response.customerTypeId);
                             $('#customerTypeModal').modal('hide');
                             $('#newCustomerTypeName').val('');
                         }
                     },
-                    error: function() {
+                    error: function () {
                         alert('Error creating customer type');
                     }
                 });
