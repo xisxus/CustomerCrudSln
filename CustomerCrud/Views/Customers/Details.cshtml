@@ -25,13 +25,20 @@
     </div>
 
     <div class="row mb-3">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="form-group">
                 <label>Customer Address</label>
                 <input type="text" class="form-control" value="@Model.CustomerAddress" readonly />
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label asp-for="BusinessStart">BusinessStart</label>
+                <input asp-for="BusinessStart" class="form-control" type="date" />
+                <span asp-validation-for="BusinessStart" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="col-md-4">
             <div class="form-group">
                 <label>Credit Limit</label>
                 <input type="text" class="form-control" value="@Model.CreditLimit" readonly />

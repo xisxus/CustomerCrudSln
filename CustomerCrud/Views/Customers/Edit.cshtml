@@ -33,12 +33,19 @@
                 </div>
 
                 <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="CustomerAddress">Primary Address</label>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="CustomerAddress">Customer Address</label>
                         <input asp-for="CustomerAddress" class="form-control" />
                         <span asp-validation-for="CustomerAddress" class="text-danger"></span>
                     </div>
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-4 mb-3">
+                        <div class="form-group">
+                            <label asp-for="BusinessStart">BusinessStart</label>
+                            <input asp-for="BusinessStart" class="form-control" type="date" />
+                            <span asp-validation-for="BusinessStart" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
                         <label asp-for="CreditLimit">Credit Limit</label>
                         <input asp-for="CreditLimit" class="form-control" />
                     </div>

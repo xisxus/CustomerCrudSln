@@ -14,7 +14,7 @@ namespace CustomerCrud.ViewModels
         [Required(ErrorMessage = "Address is Required.")]
         public string CustomerAddress { get; set; }
 
-        public DateTime BusinessStart { get; set; } = DateTime.Now;
+        public DateTime BusinessStart { get; set; } 
 
         public decimal CreditLimit { get; set; }
 

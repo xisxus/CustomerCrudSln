@@ -32,6 +32,7 @@ namespace CustomerCrud.Controllers
                     CustomerId = c.CustomersId,
                     CustomerName = c.CustomerName,
                     CustomerNo = c.CustomerNo,
+                    BusinessStart = c.BusinessStart,
                     CustomerTypeName = c.CustomerType.CustomerTypeName,
                     CustomerAddress = c.CustomerAddress,
                     CreditLimit = c.CreditLimit,
@@ -77,6 +78,7 @@ namespace CustomerCrud.Controllers
             {
                 CustomerNo = customer.CustomerNo,
                 CustomerName = customer.CustomerName,
+                BusinessStart = customer.BusinessStart,
                 CustomerTypeName = customer.CustomerType.CustomerTypeName,
                 CustomerAddress = customer.CustomerAddress,
                 CreditLimit = customer.CreditLimit,
@@ -170,21 +172,21 @@ namespace CustomerCrud.Controllers
 
         public string GenerateCustomerNumber()
         {
-            // Get the last customer number or default to 0
+           
             var lastCustomerNumber = _context.Customers
                 .OrderByDescending(c => c.CustomersId)
                 .Select(c => c.CustomerNo)
                 .FirstOrDefault();
 
-            // If no customers exist, start from 001
+          
             if (string.IsNullOrEmpty(lastCustomerNumber))
             {
                 return "001";
             }
 
-            // Increment the last number
+         
             int nextNumber = int.Parse(lastCustomerNumber) + 1;
-            return nextNumber.ToString("D3"); // Ensures 3-digit format (001, 002, etc.)
+            return nextNumber.ToString("D3"); 
         }
 
 
@@ -266,39 +268,7 @@ namespace CustomerCrud.Controllers
         }
 
 
-        // GET: Customers/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var customers = await _context.Customers
-                .Include(c => c.CustomerType)
-                .FirstOrDefaultAsync(m => m.CustomersId == id);
-            if (customers == null)
-            {
-                return NotFound();
-            }
-
-            return View(customers);
-        }
-
-        // POST: Customers/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var customers = await _context.Customers.FindAsync(id);
-            if (customers != null)
-            {
-                _context.Customers.Remove(customers);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
+       
 
         private bool CustomersExists(int id)
         {

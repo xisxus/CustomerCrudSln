@@ -6,6 +6,7 @@
         public string CustomerNo { get; set; }
         public string CustomerName { get; set; }
         public string CustomerTypeName { get; set; }
+        public DateTime? BusinessStart { get; set; }
         public string CustomerAddress { get; set; }
         public decimal? CreditLimit { get; set; }
         public int AdditionalAddressesCount { get; set; } 
