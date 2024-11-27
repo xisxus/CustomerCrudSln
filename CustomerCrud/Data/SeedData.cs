@@ -9,16 +9,16 @@ namespace CustomerCrud.Data
         {
            
             modelBuilder.Entity<CustomerType>().HasData(
-                new CustomerType { CustomerTypeId = 1, CustomerTypeName = "Retail", CreatedAt = DateTime.Now },
-                new CustomerType { CustomerTypeId = 2, CustomerTypeName = "Wholesale", CreatedAt = DateTime.Now },
-                new CustomerType { CustomerTypeId = 3, CustomerTypeName = "Corporate", CreatedAt = DateTime.Now }
+                new CustomerType { CustomerTypeId=-1, CustomerTypeName = "Retail", CreatedAt = DateTime.Now },
+                new CustomerType { CustomerTypeId = -2, CustomerTypeName = "Wholesale", CreatedAt = DateTime.Now },
+                new CustomerType { CustomerTypeId = -3, CustomerTypeName = "Corporate", CreatedAt = DateTime.Now }
             );
 
            
             modelBuilder.Entity<Customers>().HasData(
                 new Customers
                 {
-                    CustomersId = 1,
+                    
                     CustomerNo = "001",
                     CustomerName = "John Doe",
                     CustomerAddress = "123 Main St",
@@ -28,7 +28,7 @@ namespace CustomerCrud.Data
                 },
                 new Customers
                 {
-                    CustomersId = 2,
+                   
                     CustomerNo = "002",
                     CustomerName = "Jane Smith",
                     CustomerAddress = "456 Oak St",
@@ -38,7 +38,7 @@ namespace CustomerCrud.Data
                 },
                 new Customers
                 {
-                    CustomersId = 3,
+                    
                     CustomerNo = "003",
                     CustomerName = "Michael Brown",
                     CustomerAddress = "789 Pine St",
@@ -48,7 +48,7 @@ namespace CustomerCrud.Data
                 },
                 new Customers
                 {
-                    CustomersId = 4,
+                    
                     CustomerNo = "004",
                     CustomerName = "Alice Johnson",
                     CustomerAddress = "101 Maple St",
@@ -58,7 +58,7 @@ namespace CustomerCrud.Data
                 },
                 new Customers
                 {
-                    CustomersId = 5,
+                  
                     CustomerNo = "005",
                     CustomerName = "Robert Williams",
                     CustomerAddress = "202 Elm St",
@@ -68,7 +68,7 @@ namespace CustomerCrud.Data
                 },
                 new Customers
                 {
-                    CustomersId = 6,
+                   
                     CustomerNo = "006",
                     CustomerName = "Emily Davis",
                     CustomerAddress = "303 Cedar St",
@@ -78,7 +78,7 @@ namespace CustomerCrud.Data
                 },
                 new Customers
                 {
-                    CustomersId = 7,
+                    
                     CustomerNo = "007",
                     CustomerName = "William Martinez",
                     CustomerAddress = "404 Birch St",
@@ -88,7 +88,7 @@ namespace CustomerCrud.Data
                 },
                 new Customers
                 {
-                    CustomersId = 8,
+                 
                     CustomerNo = "008",
                     CustomerName = "Olivia Hernandez",
                     CustomerAddress = "505 Ash St",
@@ -98,7 +98,7 @@ namespace CustomerCrud.Data
                 },
                 new Customers
                 {
-                    CustomersId = 9,
+                   
                     CustomerNo = "009",
                     CustomerName = "James Wilson",
                     CustomerAddress = "606 Poplar St",
@@ -108,7 +108,7 @@ namespace CustomerCrud.Data
                 },
                 new Customers
                 {
-                    CustomersId = 10,
+                   
                     CustomerNo = "010",
                     CustomerName = "Sophia Moore",
                     CustomerAddress = "707 Walnut St",
@@ -118,7 +118,7 @@ namespace CustomerCrud.Data
                 },
                 new Customers
                 {
-                    CustomersId = 11,
+                   
                     CustomerNo = "011",
                     CustomerName = "David Taylor",
                     CustomerAddress = "808 Willow St",
@@ -128,7 +128,7 @@ namespace CustomerCrud.Data
                 },
                 new Customers
                 {
-                    CustomersId = 12,
+                    
                     CustomerNo = "012",
                     CustomerName = "Isabella Anderson",
                     CustomerAddress = "909 Hickory St",
@@ -138,7 +138,7 @@ namespace CustomerCrud.Data
                 },
                 new Customers
                 {
-                    CustomersId = 13,
+                    
                     CustomerNo = "013",
                     CustomerName = "Christopher Thomas",
                     CustomerAddress = "1010 Cherry St",
@@ -158,7 +158,7 @@ namespace CustomerCrud.Data
                 },
                 new Customers
                 {
-                    CustomersId = 15,
+                   
                     CustomerNo = "015",
                     CustomerName = "Ethan White",
                     CustomerAddress = "1212 Oak St",
@@ -168,7 +168,7 @@ namespace CustomerCrud.Data
                 },
                 new Customers
                 {
-                    CustomersId = 16,
+                   
                     CustomerNo = "016",
                     CustomerName = "Amelia Harris",
                     CustomerAddress = "1313 Elm St",
@@ -178,7 +178,7 @@ namespace CustomerCrud.Data
                 },
                 new Customers
                 {
-                    CustomersId = 17,
+                  
                     CustomerNo = "017",
                     CustomerName = "Daniel Martin",
                     CustomerAddress = "1414 Cedar St",
@@ -188,7 +188,7 @@ namespace CustomerCrud.Data
                 },
                 new Customers
                 {
-                    CustomersId = 18,
+                   
                     CustomerNo = "018",
                     CustomerName = "Charlotte Garcia",
                     CustomerAddress = "1515 Birch St",
@@ -198,7 +198,7 @@ namespace CustomerCrud.Data
                 },
                 new Customers
                 {
-                    CustomersId = 19,
+                    
                     CustomerNo = "019",
                     CustomerName = "Lucas Martinez",
                     CustomerAddress = "1616 Poplar St",
@@ -208,7 +208,7 @@ namespace CustomerCrud.Data
                 },
                 new Customers
                 {
-                    CustomersId = 20,
+                    
                     CustomerNo = "020",
                     CustomerName = "Harper Rodriguez",
                     CustomerAddress = "1717 Hickory St",
@@ -221,31 +221,31 @@ namespace CustomerCrud.Data
 
 
             modelBuilder.Entity<Address>().HasData(
-                new Address { Id = 1, AddressName = "Home Address", CustomersId = 1 },
-                new Address { Id = 2, AddressName = "Office Address", CustomersId = 1 },
-                new Address { Id = 3, AddressName = "Billing Address", CustomersId = 2 },
-                new Address { Id = 4, AddressName = "Shipping Address", CustomersId = 2 },
-                new Address { Id = 5, AddressName = "Home Address", CustomersId = 3 },
-                new Address { Id = 6, AddressName = "Office Address", CustomersId = 4 },
-                new Address { Id = 7, AddressName = "Branch Office", CustomersId = 4 },
-                new Address { Id = 8, AddressName = "Primary Residence", CustomersId = 5 },
-                new Address { Id = 9, AddressName = "Vacation Home", CustomersId = 5 },
-                new Address { Id = 10, AddressName = "Headquarters", CustomersId = 6 },
-                new Address { Id = 11, AddressName = "Warehouse", CustomersId = 7 },
-                new Address { Id = 12, AddressName = "Distribution Center", CustomersId = 7 },
-                new Address { Id = 13, AddressName = "Home Address", CustomersId = 8 },
-                new Address { Id = 14, AddressName = "Main Office", CustomersId = 9 },
-                new Address { Id = 15, AddressName = "Branch Office", CustomersId = 10 },
-                new Address { Id = 16, AddressName = "Corporate Office", CustomersId = 11 },
-                new Address { Id = 17, AddressName = "Remote Office", CustomersId = 12 },
-                new Address { Id = 18, AddressName = "Temporary Residence", CustomersId = 13 },
-                new Address { Id = 19, AddressName = "Warehouse", CustomersId = 14 },
-                new Address { Id = 20, AddressName = "Regional Office", CustomersId = 15 },
-                new Address { Id = 21, AddressName = "Downtown Office", CustomersId = 16 },
-                new Address { Id = 22, AddressName = "Storage Facility", CustomersId = 17 },
-                new Address { Id = 23, AddressName = "Main Branch", CustomersId = 18 },
-                new Address { Id = 24, AddressName = "Corporate HQ", CustomersId = 19 },
-                new Address { Id = 25, AddressName = "Overseas Office", CustomersId = 20 }
+                new Address {  AddressName = "Home Address", CustomersId = 1 },
+                new Address {  AddressName = "Office Address", CustomersId = 1 },
+                new Address { AddressName = "Billing Address", CustomersId = 2 },
+                new Address {  AddressName = "Shipping Address", CustomersId = 2 },
+                new Address {  AddressName = "Home Address", CustomersId = 3 },
+                new Address {  AddressName = "Office Address", CustomersId = 4 },
+                new Address {  AddressName = "Branch Office", CustomersId = 4 },
+                new Address {  AddressName = "Primary Residence", CustomersId = 5 },
+                new Address { AddressName = "Vacation Home", CustomersId = 5 },
+                new Address {  AddressName = "Headquarters", CustomersId = 6 },
+                new Address { AddressName = "Warehouse", CustomersId = 7 },
+                new Address { AddressName = "Distribution Center", CustomersId = 7 },
+                new Address { AddressName = "Home Address", CustomersId = 8 },
+                new Address { AddressName = "Main Office", CustomersId = 9 },
+                new Address { AddressName = "Branch Office", CustomersId = 10 },
+                new Address { AddressName = "Corporate Office", CustomersId = 11 },
+                new Address { AddressName = "Remote Office", CustomersId = 12 },
+                new Address { AddressName = "Temporary Residence", CustomersId = 13 },
+                new Address { AddressName = "Warehouse", CustomersId = 14 },
+                new Address { AddressName = "Regional Office", CustomersId = 15 },
+                new Address { AddressName = "Downtown Office", CustomersId = 16 },
+                new Address { AddressName = "Storage Facility", CustomersId = 17 },
+                new Address { AddressName = "Main Branch", CustomersId = 18 },
+                new Address { AddressName = "Corporate HQ", CustomersId = 19 },
+                new Address { AddressName = "Overseas Office", CustomersId = 20 }
             );
 
         }
