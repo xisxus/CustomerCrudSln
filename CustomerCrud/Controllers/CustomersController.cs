@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using CustomerCrud.Data;
 using CustomerCrud.Models;
 using CustomerCrud.ViewModels;
+using Humanizer.Configuration;
+using System.Net;
 
 namespace CustomerCrud.Controllers
 {
@@ -113,9 +115,25 @@ namespace CustomerCrud.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CustomerCreateViewModel viewModel)
         {
+            if (viewModel.CustomerName == null || viewModel.CustomerAddress == null)
+            {
+                if (viewModel.CustomerName == null && viewModel.CustomerAddress == null)
+                {
+                    return Json(new { success = false, message = "Enter Customer Name And Address" });
+                }
+                else if (viewModel.CustomerName == null)
+                {
+                    return Json(new { success = false, message = "Enter Customer Name" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Enter Delivery Address" });
+                }
+            }
+
             viewModel.Addresses = viewModel.Addresses
-           .Where(a => !string.IsNullOrWhiteSpace(a.AddressName))
-           .ToList();
+                .Where(a => !string.IsNullOrWhiteSpace(a.AddressName))
+                .ToList();
 
             if (!ModelState.IsValid)
             {
@@ -126,7 +144,7 @@ namespace CustomerCrud.Controllers
 
             var customer = new Customers
             {
-                CustomerNo = GenerateCustomerNumber(), // Regenerate to ensure uniqueness
+                CustomerNo = GenerateCustomerNumber(),
                 CustomerName = viewModel.CustomerName,
                 CustomerAddress = viewModel.CustomerAddress,
                 BusinessStart = viewModel.BusinessStart,
@@ -141,8 +159,10 @@ namespace CustomerCrud.Controllers
             _context.Customers.Add(customer);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction(nameof(Index));
+            // Return success message
+            return Json(new { success = true, message = "Customer created successfully!" });
         }
+
 
 
         [HttpPost]
@@ -224,20 +244,38 @@ namespace CustomerCrud.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(int id, CustomerCreateViewModel viewModel)
         {
-            if (id <= 0)
+            // Validate customer name and address
+            if (viewModel.CustomerName == null || viewModel.CustomerAddress == null)
             {
-                return NotFound();
+                if (viewModel.CustomerName == null && viewModel.CustomerAddress == null)
+                {
+                    return Json(new { success = false, message = "Enter Customer Name And Address" });
+                }
+                else if (viewModel.CustomerName == null)
+                {
+                    return Json(new { success = false, message = "Enter Customer Name" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Enter Delivery Address" });
+                }
             }
 
+            if (id <= 0)
+            {
+                return Json(new { success = false, message = "Invalid Customer ID" });
+            }
+
+            // Remove empty addresses
             viewModel.Addresses = viewModel.Addresses
                 .Where(a => !string.IsNullOrWhiteSpace(a.AddressName))
                 .ToList();
 
             if (!ModelState.IsValid)
             {
-                ViewBag.CustomerTypes = new SelectList(_context.CustomerTypes,
-                    "CustomerTypeId", "CustomerTypeName", viewModel.CustomerTypeId);
-                return View(viewModel);
+                // If validation fails, return the view with the model state and errors
+                ViewBag.CustomerTypes = new SelectList(_context.CustomerTypes, "CustomerTypeId", "CustomerTypeName", viewModel.CustomerTypeId);
+                return Json(new { success = false, message = "Please fix validation errors." });
             }
 
             var customer = await _context.Customers
@@ -246,9 +284,10 @@ namespace CustomerCrud.Controllers
 
             if (customer == null)
             {
-                return NotFound();
+                return Json(new { success = false, message = "Customer not found" });
             }
 
+            // Update the customer details
             customer.CustomerName = viewModel.CustomerName;
             customer.CustomerAddress = viewModel.CustomerAddress;
             customer.BusinessStart = viewModel.BusinessStart;
@@ -262,17 +301,42 @@ namespace CustomerCrud.Controllers
                 customer.AddressList.Add(new Address { AddressName = address.AddressName });
             }
 
+            // Save the changes to the database
             await _context.SaveChangesAsync();
 
-            return RedirectToAction(nameof(Index));
+            // Return success message after update
+            return Json(new { success = true, message = "Customer updated successfully!" });
         }
 
 
-       
+
+
 
         private bool CustomersExists(int id)
         {
             return _context.Customers.Any(e => e.CustomersId == id);
         }
+
+        public async Task<IActionResult> ExistCustomerAndAddress(string? customerName, string? customerAddress)
+        {
+            
+            var exists = await _context.Customers
+                                       .AnyAsync(e => (customerName != null && e.CustomerName == customerName)
+                                                      || (customerAddress != null && e.CustomerAddress == customerAddress));
+
+            
+            if (exists)
+            {
+                return Json(new { success = true, message = "Data already exists!" });
+            }
+            else
+            {
+                return Json(new { success = false, message = "Customer or Address does not exist." });
+            }
+        }
+
+
+
+
     }
 }

@@ -6,9 +6,10 @@
             <h2>Edit Customer</h2>
         </div>
         <div class="card-body">
-            <form asp-action="Edit" method="post">
+            <form asp-action="Edit" method="post" id="customerForm">
                 <input type="hidden" asp-for="CustomersId" />
 
+                <!-- First Row -->
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label>Customer Number</label>
@@ -32,6 +33,7 @@
                     </div>
                 </div>
 
+                <!-- Second Row -->
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label asp-for="CustomerAddress">Customer Address</label>
@@ -40,7 +42,7 @@
                     </div>
                     <div class="col-md-4 mb-3">
                         <div class="form-group">
-                            <label asp-for="BusinessStart">BusinessStart</label>
+                            <label asp-for="BusinessStart">Business Start</label>
                             <input asp-for="BusinessStart" class="form-control" type="date" />
                             <span asp-validation-for="BusinessStart" class="text-danger"></span>
                         </div>
@@ -51,6 +53,7 @@
                     </div>
                 </div>
 
+                <!-- Delivery Addresses -->
                 <div class="mt-4">
                     <h4>Delivery Addresses</h4>
                     <div id="addressList">
@@ -62,9 +65,11 @@
                                        value="@Model.Addresses[i].AddressName"
                                        class="form-control"
                                        placeholder="Enter Address" />
-                                <button type="button" class="btn btn-danger remove-address">
-                                    <i class="fa fa-trash">X</i>
-                                </button>
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-danger remove-address">
+                                        <i class="fa fa-trash">X</i>
+                                    </button>
+                                </div>
                             </div>
                         }
                     </div>
@@ -73,6 +78,7 @@
                     </button>
                 </div>
 
+                <!-- Submit Button -->
                 <div class="form-group mt-4">
                     <button type="submit" class="btn btn-primary">Save Changes</button>
                     <a asp-action="Index" class="btn btn-secondary">Cancel</a>
@@ -87,7 +93,6 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Create Customer Type</h5>
-                   
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
@@ -96,7 +101,6 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                  
                     <button type="button" id="saveCustomerTypeBtn" class="btn btn-primary">Save</button>
                 </div>
             </div>
@@ -104,12 +108,40 @@
     </div>
 </div>
 
-
-@section Scripts {
+@* @section Scripts {
     <script>
         $(document).ready(function () {
             let addressCounter = @Model.Addresses.Count;
 
+            // Function to check if customer or address exists (optional, you can keep or modify based on your needs)
+            function checkCustomerAndAddress() {
+                const customerName = $('#CustomerName').val();
+                const customerAddress = $('#CustomerAddress').val();
+
+                $.ajax({
+                    url: '@Url.Action("ExistCustomerAndAddress", "Customers")',
+                    type: 'GET',
+                    data: { customerName: customerName, customerAddress: customerAddress },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#validationMessage').removeClass('text-danger').addClass('text-success');
+                            $('#validationMessage').text(response.message);
+                        } else {
+                            $('#validationMessage').text('');
+                        }
+                    },
+                    error: function () {
+                        alert('Error while checking customer or address.');
+                    }
+                });
+            }
+
+            // Call the function whenever the customer name or address changes
+            $('#CustomerName, #CustomerAddress').on('input', function () {
+                checkCustomerAndAddress();
+            });
+
+            // Add address dynamically
             $('#addAddressBtn').click(function () {
                 const addressHtml = `
                     <div class="address-item mb-2">
@@ -129,7 +161,7 @@
                 addressCounter++;
             });
 
-            // Remove address
+            // Remove address dynamically
             $(document).on('click', '.remove-address', function () {
                 $(this).closest('.address-item').remove();
             });
@@ -164,6 +196,148 @@
                     }
                 });
             });
+
+            // Handle form submission with validation message display
+            $('#customerForm').submit(function (event) {
+                event.preventDefault();  // Prevent form from submitting normally
+
+                $.ajax({
+                    url: '@Url.Action("Edit", "Customers")',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    success: function (response) {
+                        if (response.success) {
+                            $('#validationMessage').removeClass('text-danger').addClass('text-success');
+                            $('#validationMessage').text(response.message);
+                        } else {
+                            $('#validationMessage').removeClass('text-success').addClass('text-danger');
+                            $('#validationMessage').text(response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('Error while submitting the form.');
+                    }
+                });
+            });
+        });
+    </script>
+} *@
+
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            let addressCounter = @Model.Addresses.Count;
+
+            // Function to check if customer or address exists (optional, you can keep or modify based on your needs)
+            function checkCustomerAndAddress() {
+                const customerName = $('#CustomerName').val();
+                const customerAddress = $('#CustomerAddress').val();
+
+                $.ajax({
+                    url: '@Url.Action("ExistCustomerAndAddress", "Customers")',
+                    type: 'GET',
+                    data: { customerName: customerName, customerAddress: customerAddress },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#validationMessage').removeClass('text-danger').addClass('text-success');
+                            $('#validationMessage').text(response.message);
+                        } else {
+                            $('#validationMessage').text('');
+                        }
+                    },
+                    error: function () {
+                        alert('Error while checking customer or address.');
+                    }
+                });
+            }
+
+            // Call the function whenever the customer name or address changes
+            $('#CustomerName, #CustomerAddress').on('input', function () {
+                checkCustomerAndAddress();
+            });
+
+            // Add address dynamically
+            $('#addAddressBtn').click(function () {
+                const addressHtml = `
+                    <div class="address-item mb-2">
+                        <div class="input-group">
+                            <input type="text"
+                                   name="Addresses[${addressCounter}].AddressName"
+                                   class="form-control"
+                                   placeholder="Enter Address" />
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-danger remove-address">
+                                    <i class="fa fa-trash">X</i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
+                $('#addressList').append(addressHtml);
+                addressCounter++;
+            });
+
+            // Remove address dynamically
+            $(document).on('click', '.remove-address', function () {
+                $(this).closest('.address-item').remove();
+            });
+
+            // Show Customer Type Modal
+            $('#addCustomerTypeBtn').click(function () {
+                $('#customerTypeModal').modal('show');
+            });
+
+            // Save new Customer Type
+            $('#saveCustomerTypeBtn').click(function () {
+                const typeName = $('#newCustomerTypeName').val();
+
+                $.ajax({
+                    url: '@Url.Action("CreateCustomerType", "Customers")',
+                    type: 'POST',
+                    data: { customerTypeName: typeName },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#CustomerTypeId').append(
+                                `<option value="${response.customerTypeId}">${response.customerTypeName}</option>`
+                            );
+                            $('#CustomerTypeId').val(response.customerTypeId);
+                            $('#customerTypeModal').modal('hide');
+                            $('#newCustomerTypeName').val('');
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('Error creating customer type.');
+                    }
+                });
+            });
+
+            // Handle form submission with AJAX and redirect on success
+                    $('#customerForm').submit(function (event) {
+            event.preventDefault();  // Prevent form from submitting normally
+
+            $.ajax({
+                url: '@Url.Action("Edit", "Customers")',  // Ensure you use the correct controller action
+                type: 'POST',
+                data: $(this).serialize(),
+                success: function (response) {
+                    if (response.success) {
+                        // Success: Redirect to the Index page
+                        window.location.href = '@Url.Action("Index", "Customers")';  // Adjust controller name if needed
+                    } else {
+                        // Failure: Show validation error message
+                        $('#validationMessage').removeClass('text-success').addClass('text-danger');
+                        $('#validationMessage').text(response.message);
+                    }
+                },
+                error: function () {
+                    alert('Error while submitting the form.');
+                }
+            });
+        });
+
         });
     </script>
 }
+

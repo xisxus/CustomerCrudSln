@@ -2,7 +2,10 @@
 
 <div class="container py-4">
     <h2 class="text-center mb-4">Create Customer</h2>
-    <form asp-action="Create" method="post">
+    <form asp-action="Create" method="post" id="customerForm">
+
+        <!-- Validation Message -->
+        <div id="validationMessage" class="mt-2"></div> <!-- This is where the validation message will show -->
         <!-- First Row -->
         <div class="row mb-3">
             <div class="col-md-4">
@@ -14,7 +17,7 @@
             <div class="col-md-4">
                 <div class="form-group">
                     <label asp-for="CustomerName">Customer Name</label>
-                    <input asp-for="CustomerName" class="form-control" />
+                    <input asp-for="CustomerName" class="form-control" id="CustomerName" />
                     <span asp-validation-for="CustomerName" class="text-danger"></span>
                 </div>
             </div>
@@ -38,14 +41,14 @@
             <div class="col-md-4">
                 <div class="form-group">
                     <label asp-for="CustomerAddress">Customer Address</label>
-                    <input asp-for="CustomerAddress" class="form-control" />
+                    <input asp-for="CustomerAddress" class="form-control" id="CustomerAddress" />
                     <span asp-validation-for="CustomerAddress" class="text-danger"></span>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="form-group">
-                    <label asp-for="BusinessStart">BusinessStart</label>
-                    <input asp-for="BusinessStart" class="form-control" type="date" />
+                    <label asp-for="BusinessStart">Business Start</label>
+                    <input asp-for="BusinessStart" class="form-control" type="date" id="BusinessStart" />
                     <span asp-validation-for="BusinessStart" class="text-danger"></span>
                 </div>
             </div>
@@ -63,14 +66,14 @@
             <div id="addressList">
                 @for (int i = 0; i < Model.Addresses.Count; i++)
                 {
-                    <div class="address-item mb-2">
+                    @* <div class="address-item mb-2">
                         <div class="input-group">
                             <input type="text" name="Addresses[@i].AddressName" value="@Model.Addresses[i].AddressName" class="form-control" placeholder="Enter Address" />
                             <button type="button" class="btn btn-danger remove-address">
                                 <i class="fa fa-trash">X</i>
                             </button>
                         </div>
-                    </div>
+                    </div> *@
                 }
             </div>
             <button type="button" id="addAddressBtn" class="btn btn-secondary">
@@ -82,7 +85,7 @@
         <div class="form-group text-center">
             <button type="submit" class="btn btn-primary px-4">Create Customer</button>
             <a asp-action="Index" class="btn btn-primary">
-                <i class="fa fa-plus"></i> BackToList
+                <i class="fa fa-plus"></i> Back To List
             </a>
         </div>
     </form>
@@ -93,7 +96,6 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Create Customer Type</h5>
-                   
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
@@ -102,7 +104,6 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                   
                     <button type="button" id="saveCustomerTypeBtn" class="btn btn-primary">Save</button>
                 </div>
             </div>
@@ -112,31 +113,93 @@
 
 @section Scripts {
     <script>
+        document.getElementById('BusinessStart').value = new Date().toISOString().split('T')[0];
+
         $(document).ready(function () {
             let addressCounter = @Model.Addresses.Count;
 
+            // Function to check if customer or address exists
+            function checkCustomerAndAddress() {
+                const customerName = $('#CustomerName').val();
+                const customerAddress = $('#CustomerAddress').val();
+
+                $.ajax({
+                    url: '@Url.Action("ExistCustomerAndAddress", "Customers")',
+                    type: 'GET',
+                    data: { customerName: customerName, customerAddress: customerAddress },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#validationMessage').removeClass('text-danger').addClass('text-success');
+                            $('#validationMessage').text(response.message);
+                        } else {
+                            $('#validationMessage').text('');
+                        }
+                    },
+                    error: function () {
+                        alert('Error while checking customer or address.');
+                    }
+                });
+            }
+
+            // Call the function whenever the customer name or address changes
+            $('#CustomerName, #CustomerAddress').on('input', function () {
+                checkCustomerAndAddress();
+            });
+
+            // Handle form submission with validation message display
+                    $('#customerForm').submit(function (event) {
+            event.preventDefault();  // Prevent form from submitting normally
+
+            $.ajax({
+                url: '@Url.Action("Create", "Customers")',
+                type: 'POST',
+                data: $(this).serialize(),
+                success: function (response) {
+                    if (response.success) {
+                        // Success message
+                        $('#validationMessage').removeClass('text-danger').addClass('text-success');
+                        $('#validationMessage').text(response.message);
+
+                        // Redirect to Index after a successful form submission
+                        window.location.href = '@Url.Action("Index", "Customers")';  // Replace "Customers" with the appropriate controller name if necessary
+                    } else {
+                        // Error message
+                        $('#validationMessage').removeClass('text-success').addClass('text-danger');
+                        $('#validationMessage').text(response.message);
+                    }
+                },
+                error: function () {
+                    alert('Error while submitting the form.');
+                }
+            });
+        });
+
+            // Add address dynamically
             $('#addAddressBtn').click(function () {
                 const addressHtml = `
-                            <div class="address-item mb-2">
-                                <div class="input-group">
-                                    <input type="text" name="Addresses[${addressCounter}].AddressName" class="form-control" placeholder="Enter Address" />
-                                    <button type="button" class="btn btn-danger remove-address">
-                                        <i class="fa fa-trash">X</i>
-                                    </button>
-                                </div>
-                            </div>`;
+                    <div class="address-item mb-2">
+                        <div class="input-group">
+                            <input type="text" name="Addresses[${addressCounter}].AddressName" class="form-control" placeholder="Enter Address" />
+                            <button type="button" class="btn btn-danger remove-address">
+                                <i class="fa fa-trash">X</i>
+                            </button>
+                        </div>
+                    </div>`;
                 $('#addressList').append(addressHtml);
                 addressCounter++;
             });
 
+            // Remove address item
             $(document).on('click', '.remove-address', function () {
                 $(this).closest('.address-item').remove();
             });
 
+            // Show modal to add customer type
             $('#addCustomerTypeBtn').click(function () {
                 $('#customerTypeModal').modal('show');
             });
 
+            // Save customer type
             $('#saveCustomerTypeBtn').click(function () {
                 const typeName = $('#newCustomerTypeName').val();
 
