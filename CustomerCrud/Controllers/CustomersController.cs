@@ -189,6 +189,26 @@ namespace CustomerCrud.Controllers
             });
         }
 
+        //[HttpGet]
+        //public async Task<IActionResult> GetCustomerType()
+        //{
+        //    var result = await _context.CustomerTypes.ToListAsync();
+        //    return Json(result); 
+        //}
+
+        [HttpGet]
+        public async Task<IActionResult> GetCustomerType()
+        {
+            var customerTypes = await _context.CustomerTypes.Select(ct => new {
+                ct.CustomerTypeId,
+                ct.CustomerTypeName
+            }).ToListAsync();
+            return Ok(customerTypes); // Return JSON response
+        }
+
+
+
+
 
         public string GenerateCustomerNumber()
         {
@@ -320,9 +340,7 @@ namespace CustomerCrud.Controllers
         public async Task<IActionResult> ExistCustomerAndAddress(string? customerName, string? customerAddress)
         {
             
-            var exists = await _context.Customers
-                                       .AnyAsync(e => (customerName != null && e.CustomerName == customerName)
-                                                      || (customerAddress != null && e.CustomerAddress == customerAddress));
+            var exists = await _context.Customers.AnyAsync(e => (customerName != null && e.CustomerName == customerName) || (customerAddress != null && e.CustomerAddress == customerAddress));
 
             
             if (exists)
@@ -335,7 +353,21 @@ namespace CustomerCrud.Controllers
             }
         }
 
+        public async Task<IActionResult> ExistCustomerType(string? customerType)
+        {
 
+            var exists = await _context.CustomerTypes.AnyAsync(e => (customerType != null && e.CustomerTypeName == customerType));
+
+
+            if (exists)
+            {
+                return Json(new { success = true, message = "Data already exists!" });
+            }
+            else
+            {
+                return Json(new { success = false, message = "Customer or Address does not exist." });
+            }
+        }
 
 
     }
