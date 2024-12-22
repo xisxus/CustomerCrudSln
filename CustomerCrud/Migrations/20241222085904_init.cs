@@ -17,7 +17,9 @@ namespace CustomerCrud.Migrations
                 {
                     CustomerTypeId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    CustomerTypeNo = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CustomerTypeName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ShortName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>

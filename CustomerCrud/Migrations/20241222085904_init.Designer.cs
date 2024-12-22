@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CustomerCrud.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241127214519_init")]
+    [Migration("20241222085904_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -59,6 +59,14 @@ namespace CustomerCrud.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("CustomerTypeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CustomerTypeNo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ShortName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

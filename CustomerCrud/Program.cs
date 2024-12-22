@@ -1,7 +1,19 @@
 using CustomerCrud.Data;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+
+
+// Configure QuestPDF License
+QuestPDF.Settings.License = LicenseType.Community;
+ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+
+
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -23,6 +35,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Customers}/{action=create}/{id?}");
 
 app.Run();

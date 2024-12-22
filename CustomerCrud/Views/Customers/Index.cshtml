@@ -1,81 +1,183 @@
 ﻿<div class="container">
     <h2>Customers List</h2>
+    <p>Showing @Model.StartIndex to @Model.EndIndex of @Model.TotalCustomers results</p>
 
-    <div class="mb-3">
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="fa fa-plus"></i> Add Customer
-        </a>
-    </div>
+    <form method="get">
+        <input type="hidden" id="selectedIds" name="selectedIds" value="@Model.SelectedIds" />
 
-    <div class="alert alert-info">
-        Showing results @Model.StartIndex to @Model.EndIndex of @Model.TotalCustomers total customers.
-    </div>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="pageSize" class="mr-2">Page Size:</label>
 
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                <th>Customer No</th>
-                <th>Customer Name</th>
-                <th>Customer Type</th>
-                <th>Customer Address</th>
-                <th>Business Start</th>
-                <th>Credit Limit</th>
-                <th>Delivery Addresses</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var customer in Model.Customers)
-            {
+
+                <select id="pageSize" name="pageSize" class="form-control" onchange="submitForm()">
+                    @foreach (var size in new[] { 5, 10, 15 })
+                    {
+                        if (size == Model.PageSize)
+                        {
+                            <option value="@size" selected>@size</option>
+                        }
+                        else
+                        {
+                            <option value="@size">@size</option>
+                        }
+                    }
+                </select>
+
+
+
+
+            </div>
+            <div class="col-md-6 text-right">
+                <button type="button" class="btn btn-primary" onclick="generateReport('pdf')">Download PDF</button>
+                <button type="button" class="btn btn-success" onclick="generateReport('excel')">Download Excel</button>
+                <button type="button" class="btn btn-info" onclick="generateReport('word')">Download Word</button>
+            </div>
+        </div>
+
+        <table class="table table-bordered table-striped">
+            <thead>
                 <tr>
-                    <td>@customer.CustomerNo</td>
-                    <td>@customer.CustomerName</td>
-                    <td>@customer.CustomerTypeName</td>
-                    <td>@customer.CustomerAddress</td>
-                    <td>@customer.BusinessStart?.ToString("yyyy-MM-dd")</td>
-                    <td>@customer.CreditLimit?.ToString("C")</td>
-                    <td>@customer.AdditionalAddressesCount</td>
-                    <td>
-                        <a asp-action="Edit" asp-route-id="@customer.CustomerId" class="btn btn-sm btn-warning">
-                            <i class="fas fa-edit">Edit</i>
-                        </a>
-                        <a asp-action="Details" asp-route-id="@customer.CustomerId" class="btn btn-sm btn-info">
-                            <i class="fa fa-eye"></i> View
-                        </a>
-                        <form asp-action="Delete" asp-route-id="@customer.CustomerId" method="post" class="d-inline">
-                            <button type="submit" class="btn btn-sm btn-danger"
-                                    onclick="return confirm('Are you sure you want to delete this customer?');">
-                                <i class="fas fa-trash">Delete</i> 
-                            </button>
-                        </form>
-                    </td>
+                    <th>
+                        <input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)" />
+                    </th>
+                    <th>
+                        <a href="?sortField=CustomerNo&sortOrder=@(Model.SortOrder == "asc" ? "desc" : "asc")">Customer No</a>
+                    </th>
+                    <th>
+                        <a href="?sortField=CustomerName&sortOrder=@(Model.SortOrder == "asc" ? "desc" : "asc")">Customer Name</a>
+                    </th>
+                    <th>
+                        <a href="?sortField=CustomerTypeName&sortOrder=@(Model.SortOrder == "asc" ? "desc" : "asc")">Customer Type</a>
+                    </th>
+                    <th>Customer Address</th>
+                    <th>
+                        <a href="?sortField=BusinessStart&sortOrder=@(Model.SortOrder == "asc" ? "desc" : "asc")">Business Start</a>
+                    </th>
+                    <th>
+                        <a href="?sortField=CreditLimit&sortOrder=@(Model.SortOrder == "asc" ? "desc" : "asc")">Credit Limit</a>
+                    </th>
+                    <th>Delivery Addresses</th>
+                    <th>Actions</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var customer in Model.Customers)
+                {
+                    <tr>
+                        <td>
+                            <input type="checkbox" name="selectedCustomers" value="@customer.CustomerId" 
+                                   @(customer.IsSelected ? "checked" : "") onchange="updateSelectedIds()" />
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@customer.CustomerId" class="btn btn-sm btn-info">
+                                <i class="fa fa-eye"></i> @customer.CustomerNo
+                            </a>
+                        </td>
+                        <td>@customer.CustomerName</td>
+                        <td>@customer.CustomerTypeName</td>
+                        <td>@customer.CustomerAddress</td>
+                        <td>@customer.BusinessStart?.ToString("dd-MM-yyyy")</td>
+                        <td>@customer.CreditLimit?.ToString("C")</td>
+                        <td>@customer.AdditionalAddressesCount</td>
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@customer.CustomerId" class="btn btn-sm btn-warning">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                           @*  <a asp-action="Details" asp-route-id="@customer.CustomerId" class="btn btn-sm btn-info">
+                                <i class="fa fa-eye"></i> View
+                            </a> *@
+                            <button class="btn btn-sm btn-danger" onclick="confirmDelete(@customer.CustomerId)">Delete</button>
 
-    <nav>
-        <ul class="pagination">
-            @if (Model.CurrentPage > 1)
-            {
-                <li class="page-item">
-                    <a asp-action="Index" asp-route-page="@(Model.CurrentPage - 1)" asp-route-pageSize="@Model.PageSize" class="page-link">Previous</a>
-                </li>
-            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
 
-            @for (int i = 1; i <= Model.TotalPages; i++)
-            {
-                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                    <a asp-action="Index" asp-route-page="@i" asp-route-pageSize="@Model.PageSize" class="page-link">@i</a>
-                </li>
-            }
-
-            @if (Model.CurrentPage < Model.TotalPages)
-            {
-                <li class="page-item">
-                    <a asp-action="Index" asp-route-page="@(Model.CurrentPage + 1)" asp-route-pageSize="@Model.PageSize" class="page-link">Next</a>
-                </li>
-            }
-        </ul>
-    </nav>
+        <nav>
+            <ul class="pagination">
+                @for (var i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                        <a class="page-link" href="?page=@i&pageSize=@Model.PageSize&sortField=@Model.SortField&sortOrder=@Model.SortOrder">
+                            @i
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </form>
 </div>
+
+<script>
+    function toggleSelectAll(source) {
+        const checkboxes = document.querySelectorAll('input[name="selectedCustomers"]');
+        checkboxes.forEach(cb => cb.checked = source.checked);
+        updateSelectedIds();
+    }
+
+    function updateSelectedIds() {
+        const selectedIds = Array.from(document.querySelectorAll('input[name="selectedCustomers"]:checked'))
+            .map(cb => cb.value);
+        document.getElementById('selectedIds').value = selectedIds.join(',');
+    }
+
+    function submitForm() {
+        const form = document.querySelector('form');
+        form.submit();
+    }
+
+
+       function confirmDelete(customerId) {
+        if (confirm("Are you sure you want to delete this customer?")) {
+            $.ajax({
+                url: `/Customers/DeleteConfirmed/${customerId}`,
+                type: 'POST',
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function () {
+                    alert("Customer deleted successfully!");
+                    window.location.href = '/Customers/Index'; // Reload the page to reflect changes
+                },
+                error: function () {
+                    alert("An error occurred while deleting the customer.");
+                }
+            });
+        }
+    }
+
+
+
+
+    function generateReport(reportType) {
+        const selectedCustomerIds = Array.from(document.querySelectorAll('input[name="selectedCustomers"]:checked'))
+            .map(cb => cb.value);
+
+        if (selectedCustomerIds.length === 0) {
+            alert('Please select at least one customer.');
+            return;
+        }
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/Customers/GenerateReport'; // Update with the correct URL
+        form.style.display = 'none';
+
+        const reportTypeInput = document.createElement('input');
+        reportTypeInput.name = 'reportType';
+        reportTypeInput.value = reportType;
+        form.appendChild(reportTypeInput);
+
+        selectedCustomerIds.forEach(id => {
+            const input = document.createElement('input');
+            input.name = 'selectedCustomerIds';
+            input.value = id;
+            form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+</script>

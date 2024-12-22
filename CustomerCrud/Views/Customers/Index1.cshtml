@@ -1,0 +1,129 @@
+﻿
+
+
+<div class="container">
+    <h2>Customers List</h2>
+
+    <table id="customersTable" class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>
+                    <input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)" />
+                </th>
+                <th>Customer No</th>
+                <th>Customer Name</th>
+                <th>Customer Type</th>
+                <th>Customer Address</th>
+                <th>Business Start</th>
+                <th>Credit Limit</th>
+                <th>Delivery Addresses</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var customer in Model.Customers)
+            {
+                <tr>
+                    <td>
+                        <input type="checkbox" name="selectedCustomers" value="@customer.CustomerId" @(customer.IsSelected ? "checked" : "") />
+                    </td>
+                    <td>@customer.CustomerNo</td>
+                    <td>@customer.CustomerName</td>
+                    <td>@customer.CustomerTypeName</td>
+                    <td>@customer.CustomerAddress</td>
+                    <td>@customer.BusinessStart?.ToString("dd-MM-yyyy")</td>
+                    <td>@customer.CreditLimit?.ToString("C")</td>
+                    <td>@customer.AdditionalAddressesCount</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@customer.CustomerId" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a asp-action="Details" asp-route-id="@customer.CustomerId" class="btn btn-sm btn-info">
+                            <i class="fa fa-eye"></i> View
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="mt-3">
+        <button type="button" class="btn btn-primary" onclick="generateReport('pdf')">Download PDF</button>
+        <button type="button" class="btn btn-success" onclick="generateReport('excel')">Download Excel</button>
+        <button type="button" class="btn btn-info" onclick="generateReport('word')">Download Word</button>
+    </div>
+</div>
+
+
+
+@* <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<!-- Include DataTables CSS and JS -->
+<script src="~/lib/jquery/dist/jquery.js" ></script>
+<script src="~/lib/jquery/dist/jquery.min.js" ></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+<!-- Include jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+ *@
+<!-- Include DataTables CSS and JS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css">
+<script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
+
+
+
+
+
+<script>
+        var $jq = jQuery.noConflict();
+    $jq(document).ready(function() {
+   
+        // Initialize DataTables
+        $('#customersTable').DataTable({
+            paging: true,       // Enables pagination
+            searching: true,    // Enables searching
+            ordering: true,     // Enables sorting
+            lengthMenu: [10, 25, 50, 100], // Page size options
+            stateSave: true,    // Retains table state (pagination, search, sort) on reload
+            columnDefs: [
+                { orderable: false, targets: [0, 8] } // Disable sorting for checkboxes and actions column
+            ]
+        });
+    });
+
+    function toggleSelectAll(source) {
+        const checkboxes = document.querySelectorAll('input[name="selectedCustomers"]');
+        checkboxes.forEach(checkbox => checkbox.checked = source.checked);
+    }
+
+    function generateReport(reportType) {
+        const selectedCustomerIds = Array.from(document.querySelectorAll('input[name="selectedCustomers"]:checked'))
+            .map(cb => cb.value);
+
+        if (selectedCustomerIds.length === 0) {
+            alert('Please select at least one customer.');
+            return;
+        }
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/Customers/GenerateReport'; // Adjust to the actual controller URL
+        form.style.display = 'none';
+
+        const reportTypeInput = document.createElement('input');
+        reportTypeInput.name = 'reportType';
+        reportTypeInput.value = reportType;
+        form.appendChild(reportTypeInput);
+
+        selectedCustomerIds.forEach(id => {
+            const input = document.createElement('input');
+            input.name = 'selectedCustomerIds';
+            input.value = id;
+            form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+</script>
