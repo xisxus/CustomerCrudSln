@@ -115,32 +115,49 @@ namespace CustomerCrud.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CustomerCreateViewModel viewModel)
         {
-            if (viewModel.CustomerName == null || viewModel.CustomerAddress == null)
+            if (viewModel.CustomerName == null || viewModel.CustomerAddress == null || viewModel.CustomerTypeId == 0)
             {
-                if (viewModel.CustomerName == null && viewModel.CustomerAddress == null)
+                if (viewModel.CustomerName == null && viewModel.CustomerAddress == null && viewModel.CustomerTypeId == 0)
                 {
-                    return Json(new { success = false, message = "Enter Customer Name And Address" });
+                    return Json(new { success = false, message = "Enter Customer Name And Address And type" });
                 }
                 else if (viewModel.CustomerName == null)
                 {
                     return Json(new { success = false, message = "Enter Customer Name" });
                 }
-                else
+                else if (viewModel.CustomerAddress == null)
                 {
                     return Json(new { success = false, message = "Enter Delivery Address" });
                 }
+                else
+                {
+                    return Json(new { success = false, message = "Enter Customer Type" });
+
+                }
             }
 
-            viewModel.Addresses = viewModel.Addresses
-                .Where(a => !string.IsNullOrWhiteSpace(a.AddressName))
-                .ToList();
+            List<AddressViewModel> addrss = new List<AddressViewModel>();
 
-            if (!ModelState.IsValid)
+            foreach (var item in viewModel.Addresses)
             {
-                ViewBag.CustomerTypes = new SelectList(_context.CustomerTypes,
-                    "CustomerTypeId", "CustomerTypeName");
-                return View(viewModel);
+                if (item.AddressName != null)
+                {
+                    addrss.Add(item);
+                }
             }
+
+            viewModel.Addresses = addrss;
+
+            //viewModel.Addresses = viewModel.Addresses
+            //    .Where(a => !string.IsNullOrWhiteSpace(a.AddressName))
+            //    .ToList();
+
+            //if (!ModelState.IsValid)
+            //{
+            //    ViewBag.CustomerTypes = new SelectList(_context.CustomerTypes,
+            //        "CustomerTypeId", "CustomerTypeName");
+            //    return View(viewModel);
+            //}
 
             var customer = new Customers
             {
@@ -197,7 +214,7 @@ namespace CustomerCrud.Controllers
         //}
 
         [HttpGet]
-        public async Task<IActionResult> GetCustomerType()
+        public async Task<IActionResult> GetCustomerTypes()
         {
             var customerTypes = await _context.CustomerTypes.Select(ct => new {
                 ct.CustomerTypeId,
@@ -205,6 +222,8 @@ namespace CustomerCrud.Controllers
             }).ToListAsync();
             return Ok(customerTypes); // Return JSON response
         }
+
+
 
 
 
@@ -265,21 +284,38 @@ namespace CustomerCrud.Controllers
         public async Task<IActionResult> Edit(int id, CustomerCreateViewModel viewModel)
         {
             // Validate customer name and address
-            if (viewModel.CustomerName == null || viewModel.CustomerAddress == null)
+            if (viewModel.CustomerName == null || viewModel.CustomerAddress == null || viewModel.CustomerTypeId == 0)
             {
-                if (viewModel.CustomerName == null && viewModel.CustomerAddress == null)
+                if (viewModel.CustomerName == null && viewModel.CustomerAddress == null && viewModel.CustomerTypeId == 0)
                 {
-                    return Json(new { success = false, message = "Enter Customer Name And Address" });
+                    return Json(new { success = false, message = "Enter Customer Name And Address And type" });
                 }
                 else if (viewModel.CustomerName == null)
                 {
                     return Json(new { success = false, message = "Enter Customer Name" });
                 }
-                else
+                else if (viewModel.CustomerAddress == null)
                 {
                     return Json(new { success = false, message = "Enter Delivery Address" });
                 }
+                else
+                {
+                    return Json(new { success = false, message = "Enter Customer Type" });
+
+                }
             }
+
+            List<AddressViewModel> addrss = new List<AddressViewModel>();
+
+            foreach (var item in viewModel.Addresses)
+            {
+                if (item.AddressName != null)
+                {
+                    addrss.Add(item);
+                }
+            }
+
+            viewModel.Addresses = addrss;
 
             if (id <= 0)
             {
@@ -287,16 +323,16 @@ namespace CustomerCrud.Controllers
             }
 
             // Remove empty addresses
-            viewModel.Addresses = viewModel.Addresses
-                .Where(a => !string.IsNullOrWhiteSpace(a.AddressName))
-                .ToList();
+            //viewModel.Addresses = viewModel.Addresses
+            //    .Where(a => !string.IsNullOrWhiteSpace(a.AddressName))
+            //    .ToList();
 
-            if (!ModelState.IsValid)
-            {
-                // If validation fails, return the view with the model state and errors
-                ViewBag.CustomerTypes = new SelectList(_context.CustomerTypes, "CustomerTypeId", "CustomerTypeName", viewModel.CustomerTypeId);
-                return Json(new { success = false, message = "Please fix validation errors." });
-            }
+            //if (!ModelState.IsValid)
+            //{
+            //    // If validation fails, return the view with the model state and errors
+            //    ViewBag.CustomerTypes = new SelectList(_context.CustomerTypes, "CustomerTypeId", "CustomerTypeName", viewModel.CustomerTypeId);
+            //    return Json(new { success = false, message = "Please fix validation errors." });
+            //}
 
             var customer = await _context.Customers
                 .Include(c => c.AddressList)
@@ -328,7 +364,7 @@ namespace CustomerCrud.Controllers
             return Json(new { success = true, message = "Customer updated successfully!" });
         }
 
-
+     
 
 
 

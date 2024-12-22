@@ -88,16 +88,30 @@
     </div>
 
     <!-- Customer Type Modal -->
+
     <div class="modal fade" id="customerTypeModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Create Customer Type</h5>
+                    <h5 class="modal-title">Select or Create Customer Type</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <!-- Dynamic List of Customer Types -->
+                    <div id="customerTypeListContainer" class="mb-3">
+                        <h6>Select a Customer Type</h6>
+                        <ul id="customerTypeList" class="list-group">
+                            <!-- Dynamic content will be loaded here -->
+                        </ul>
+                    </div>
+
+                    <hr />
+
+                    <!-- Add New Customer Type -->
                     <div class="form-group">
+                        <h6>Or Create a New Customer Type</h6>
                         <label>Customer Type Name</label>
-                        <input type="text" id="newCustomerTypeName" class="form-control" />
+                        <input type="text" id="newCustomerTypeName" class="form-control" placeholder="Enter new type name" />
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -106,6 +120,7 @@
             </div>
         </div>
     </div>
+
 </div>
 
 @* @section Scripts {
@@ -283,35 +298,94 @@
             });
 
             // Show Customer Type Modal
-            $('#addCustomerTypeBtn').click(function () {
-                $('#customerTypeModal').modal('show');
+           $('#addCustomerTypeBtn').click(function () {
+            // Clear existing list
+            $('#customerTypeList').empty();
+
+            // Show modal
+            $('#customerTypeModal').modal('show');
+
+            // Fetch customer types via AJAX
+            $.ajax({
+                url: '@Url.Action("GetCustomerTypes", "Customers")', // Adjust the action and controller
+                type: 'GET',
+                success: function (data) {
+                    if (data && data.length > 0) {
+                        // Populate the list
+                        data.forEach(function (type) {
+                            $('#customerTypeList').append(`
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    ${type.customerTypeName}
+                                    <input type="checkbox" class="select-customer-type" value="${type.customerTypeId}" />
+                                </li>
+                            `);
+                        });
+                    } else {
+                        $('#customerTypeList').append(`
+                            <li class="list-group-item text-center text-muted">
+                                No customer types available.
+                            </li>
+                        `);
+                    }
+                },
+                error: function () {
+                    alert('Error fetching customer types.');
+                }
             });
+        });
 
-            // Save new Customer Type
-            $('#saveCustomerTypeBtn').click(function () {
-                const typeName = $('#newCustomerTypeName').val();
+        // Ensure only one checkbox is selected at a time
+        $(document).on('change', '.select-customer-type', function () {
+            const selectedCheckbox = $(this);
 
+            // Uncheck other checkboxes
+            $('.select-customer-type').not(this).prop('checked', false);
+        });
+
+        // Save the selected or newly created customer type
+        $('#saveCustomerTypeBtn').click(function () {
+            const selectedType = $('.select-customer-type:checked').val();
+            const selectedTypeName = $('.select-customer-type:checked')
+                .closest('li')
+                .text()
+                .trim();
+            const newTypeName = $('#newCustomerTypeName').val().trim();
+
+            if (selectedType) {
+                // Update the dropdown with the selected type
+                $('#CustomerTypeId').val(selectedType);
+                $('#CustomerTypeId option:selected').text(selectedTypeName);
+
+                // Close the modal
+                $('#customerTypeModal').modal('hide');
+            } else if (newTypeName) {
+                // Create a new customer type
                 $.ajax({
                     url: '@Url.Action("CreateCustomerType", "Customers")',
                     type: 'POST',
-                    data: { customerTypeName: typeName },
+                    data: { customerTypeName: newTypeName },
                     success: function (response) {
                         if (response.success) {
+                            // Add the new type to the dropdown and select it
                             $('#CustomerTypeId').append(
-                                `<option value="${response.customerTypeId}">${response.customerTypeName}</option>`
+                                `<option value="${response.customerTypeId}" selected>${newTypeName}</option>`
                             );
-                            $('#CustomerTypeId').val(response.customerTypeId);
+
+                            // Close the modal and reset the input field
                             $('#customerTypeModal').modal('hide');
                             $('#newCustomerTypeName').val('');
                         } else {
-                            alert(response.message);
+                            alert('Error creating new customer type.');
                         }
                     },
                     error: function () {
-                        alert('Error creating customer type.');
+                        alert('Error creating new customer type.');
                     }
                 });
-            });
+            } else {
+                alert('Please select or create a customer type.');
+            }
+        });
 
             // Handle form submission with AJAX and redirect on success
                     $('#customerForm').submit(function (event) {
