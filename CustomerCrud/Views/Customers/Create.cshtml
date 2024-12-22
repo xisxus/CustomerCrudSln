@@ -98,14 +98,15 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="customerTypeModalLabel">Select or Create Customer Type</h5>
+                    <h5 class="modal-title" id="customerTypeModalLabel">Select, Create, or Edit Customer Type</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Add New Customer Type -->
-                    <h6>Create a New Customer Type</h6>
-                    <form id="newCustomerTypeForm">
+                    <!-- Add or Edit Customer Type -->
+                    <h6 id="formTitle">Create a New Customer Type</h6>
+                    <form id="customerTypeForm">
                         <div class="row">
+                            <input type="hidden" id="customerTypeId" /> <!-- Hidden field for ID -->
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label>Customer Number</label>
@@ -114,14 +115,14 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="newCustomerTypeName">Customer Type Name</label>
-                                    <input type="text" id="newCustomerTypeName" class="form-control" placeholder="Enter Customer Type Name" required>
+                                    <label for="customerTypeName">Customer Type Name</label>
+                                    <input type="text" id="customerTypeName" class="form-control" placeholder="Enter Customer Type Name" required>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="newCustomerTypeShortName">Short Name</label>
-                                    <input type="text" id="newCustomerTypeShortName" class="form-control" placeholder="Enter Short Name">
+                                    <label for="customerTypeShortName">Short Name</label>
+                                    <input type="text" id="customerTypeShortName" class="form-control" placeholder="Enter Short Name">
                                 </div>
                             </div>
                         </div>
@@ -129,6 +130,7 @@
                     <div>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="button" id="saveCustomerTypeBtn" class="btn btn-primary">Save</button>
+                        <button type="button" id="updateCustomerTypeBtn" class="btn btn-success" style="display: none;">Update</button>
                     </div>
                     <hr />
                     <!-- Table for displaying customer types -->
@@ -140,6 +142,7 @@
                                     <th>NO</th>
                                     <th>Name</th>
                                     <th>Short Name</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -154,6 +157,7 @@
             </div>
         </div>
     </div>
+
 
 
 
@@ -254,12 +258,18 @@
             // Show modal to add customer type
                   // Open the modal and load customer types
            // Open the modal and load customer types
-                  let customerTypeTable = $('#customerTypeTable').DataTable();
+                 let customerTypeTable = $('#customerTypeTable').DataTable();
 
         // Open modal and load customer types
         $('#addCustomerTypeBtn').click(function () {
-            // Show the modal
             $('#customerTypeModal').modal('show');
+            $('#formTitle').text('Create a New Customer Type');
+            $('#saveCustomerTypeBtn').show();
+            $('#updateCustomerTypeBtn').hide();
+
+            // Clear the form
+            $('#customerTypeForm')[0].reset();
+            $('#customerTypeId').val('');
 
             // Fetch customer types via AJAX
             $.ajax({
@@ -271,12 +281,12 @@
 
                     // Add rows to the DataTable
                     data.forEach(function (type) {
-                        console.log('typr', type)
                         customerTypeTable.row.add([
                             `<input type="checkbox" class="mark-customer-type" data-id="${type.customerTypeId}" />`, // Mark checkbox
                             type.customerTypeNo, // ID
                             type.customerTypeName, // Name
-                            type.shortName || '-' // Short Name
+                            type.shortName || '-', // Short Name
+                            `<button class="btn btn-warning edit-customer-type" data-id="${type.customerTypeId}" data-name="${type.customerTypeName}" data-short-name="${type.shortName}">Edit</button>`
                         ]).draw();
                     });
                 },
@@ -286,16 +296,10 @@
             });
         });
 
-        // Enable/disable delete button based on marked checkboxes
-        $('#customerTypeTable').on('change', '.mark-customer-type', function () {
-            const markedCount = $('.mark-customer-type:checked').length;
-            $('#deleteCustomerTypeBtn').prop('disabled', markedCount === 0);
-        });
-
         // Save new customer type
         $('#saveCustomerTypeBtn').click(function () {
-            const newTypeName = $('#newCustomerTypeName').val().trim();
-            const newShortName = $('#newCustomerTypeShortName').val().trim();
+            const newTypeName = $('#customerTypeName').val().trim();
+            const newShortName = $('#customerTypeShortName').val().trim();
 
             if (!newTypeName) {
                 alert('Please enter a Customer Type Name.');
@@ -308,9 +312,18 @@
                 data: { customerTypeName: newTypeName, shortName: newShortName },
                 success: function (response) {
                     if (response.success) {
-                        // Reset the form and close the modal
-                        $('#newCustomerTypeForm')[0].reset();
-                        $('#customerTypeModal').modal('hide');
+                        //          $('#CustomerTypeId').append(`<option value="${response.customerTypeId}">${newTypeName}</option>`);
+                        // $('#customerTypeForm')[0].reset();
+                        // $('#customerTypeModal').modal('hide');
+                        // $('#addCustomerTypeBtn').click();
+
+
+                                $('#CustomerTypeId').append(`<option value="${response.customerTypeId}">${newTypeName}</option>`);
+                                $('#CustomerTypeId').val(response.customerTypeId);
+                                $('#customerTypeModal').modal('hide');
+                                $('#newCustomerTypeName').val('');
+
+
                     } else {
                         alert('Error creating new customer type.');
                     }
@@ -321,13 +334,72 @@
             });
         });
 
+        // Populate form for editing a customer type
+        $('#customerTypeTable').on('click', '.edit-customer-type', function () {
+            const customerTypeId = $(this).data('id');
+            const customerTypeName = $(this).data('name');
+            const shortName = $(this).data('short-name');
+
+            // Populate the form with the selected customer type's data
+            $('#customerTypeId').val(customerTypeId);
+            $('#customerTypeName').val(customerTypeName);
+            $('#customerTypeShortName').val(shortName || '');
+
+            // Show the update button and hide the save button
+            $('#formTitle').text('Edit Customer Type');
+            $('#saveCustomerTypeBtn').hide();
+            $('#updateCustomerTypeBtn').show();
+
+            // Open the modal
+            $('#customerTypeModal').modal('show');
+        });
+
+        // Update customer type
+        $('#updateCustomerTypeBtn').click(function () {
+            const customerTypeId = $('#customerTypeId').val();
+            const updatedTypeName = $('#customerTypeName').val().trim();
+            const updatedShortName = $('#customerTypeShortName').val().trim();
+
+            if (!updatedTypeName) {
+                alert('Please enter a Customer Type Name.');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("UpdateCustomerType", "Customers")',
+                type: 'POST',
+                data: {
+                    customerTypeId: customerTypeId,
+                    customerTypeName: updatedTypeName,
+                    shortName: updatedShortName
+                },
+                success: function (response) {
+                    if (response.success) {
+                        $('#customerTypeForm')[0].reset();
+                        $('#customerTypeModal').modal('hide');
+                        $('#addCustomerTypeBtn').click();
+                    } else {
+                        alert('Error updating customer type.');
+                    }
+                },
+                error: function () {
+                    alert('Error updating customer type.');
+                }
+            });
+        });
+
+        // Enable/disable delete button based on marked checkboxes
+        $('#customerTypeTable').on('change', '.mark-customer-type', function () {
+            const markedCount = $('.mark-customer-type:checked').length;
+            $('#deleteCustomerTypeBtn').prop('disabled', markedCount === 0);
+        });
+
         // Delete selected customer types
         $('#deleteCustomerTypeBtn').click(function () {
-            
             const markedIds = $('.mark-customer-type:checked').map(function () {
-                    return $(this).data('id');
+                return $(this).data('id');
             }).get();
-            console.log('idss',markedIds);
+
             if (markedIds.length === 0) {
                 alert('No customer types selected.');
                 return;
@@ -343,7 +415,6 @@
                 data: { customerTypeIds: markedIds },
                 success: function (response) {
                     if (response.success) {
-                        // Refresh the customer type table
                         $('#addCustomerTypeBtn').click();
                     } else {
                         alert('Error deleting customer types.');
@@ -354,6 +425,7 @@
                 }
             });
         });
+
 
     });
     </script>
