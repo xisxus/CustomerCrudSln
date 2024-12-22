@@ -353,7 +353,7 @@ namespace CustomerCrud.Controllers
             // Update addresses
             customer.AddressList.Clear();
             foreach (var address in viewModel.Addresses)
-            {
+            { 
                 customer.AddressList.Add(new Address { AddressName = address.AddressName });
             }
 
