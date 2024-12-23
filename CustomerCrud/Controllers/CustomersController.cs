@@ -21,6 +21,7 @@ using QuestPDF.Infrastructure;
 
 using QuestPDF.Helpers;
 using OfficeOpenXml;
+using DocumentFormat.OpenXml.Vml.Office;
 
 
 
@@ -328,10 +329,10 @@ namespace CustomerCrud.Controllers
                                 table.Cell()
                                     .Border(1).BorderColor(Colors.Black)
                                     .Padding(5)
-                                    .AlignCenter()
+                                    .AlignLeft()
                                     .Text(customer.CustomerName);
 
-                                table.Cell()
+                                table.Cell() 
                                     .Border(1).BorderColor(Colors.Black)
                                     .Padding(5)
                                     .AlignCenter()
@@ -340,7 +341,7 @@ namespace CustomerCrud.Controllers
                                 table.Cell()
                                     .Border(1).BorderColor(Colors.Black)
                                     .Padding(5)
-                                    .AlignCenter()
+                                    .AlignLeft()
                                     .Text(customer.CustomerAddress ?? "N/A");
 
                                 table.Cell()
@@ -352,8 +353,8 @@ namespace CustomerCrud.Controllers
                                 table.Cell()
                                     .Border(1).BorderColor(Colors.Black)
                                     .Padding(5)
-                                    .AlignCenter()
-                                    .Text(customer.CreditLimit.ToString("C") ?? "N/A");
+                                    .AlignRight()
+                                    .Text(customer.CreditLimit.ToString("N2") ?? "N/A");
                             }
                         });
 
@@ -393,12 +394,31 @@ namespace CustomerCrud.Controllers
             // Add data
             for (int i = 0; i < customers.Count; i++)
             {
+                //worksheet.Cells[i + 2, 1].Value = customers[i].CustomerNo;
+                //worksheet.Cells[i + 2, 2].Value = customers[i].CustomerName;
+                //worksheet.Cells[i + 2, 3].Value = customers[i].CustomerType?.CustomerTypeName ?? "N/A";
+                //worksheet.Cells[i + 2, 4].Value = customers[i].CustomerAddress ?? "N/A";
+                //worksheet.Cells[i + 2, 5].Value = customers[i].BusinessStart.ToString("dd-MM-yyyy") ?? "N/A";
+                //worksheet.Cells[i + 2, 6].Value = customers[i].CreditLimit.ToString("N2") ?? "N/A";
+
+                // Right align "Customer No" and "Credit Limit"
                 worksheet.Cells[i + 2, 1].Value = customers[i].CustomerNo;
+                worksheet.Cells[i + 2, 1].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+
                 worksheet.Cells[i + 2, 2].Value = customers[i].CustomerName;
+                worksheet.Cells[i + 2, 2].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left; // Left align Name
+
                 worksheet.Cells[i + 2, 3].Value = customers[i].CustomerType?.CustomerTypeName ?? "N/A";
+                worksheet.Cells[i + 2, 3].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center; // Left align Type
+
                 worksheet.Cells[i + 2, 4].Value = customers[i].CustomerAddress ?? "N/A";
+                worksheet.Cells[i + 2, 4].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left; // Left align Address
+
                 worksheet.Cells[i + 2, 5].Value = customers[i].BusinessStart.ToString("dd-MM-yyyy") ?? "N/A";
-                worksheet.Cells[i + 2, 6].Value = customers[i].CreditLimit.ToString("C") ?? "N/A";
+                worksheet.Cells[i + 2, 5].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center; // Center align Business Start
+
+                worksheet.Cells[i + 2, 6].Value = customers[i].CreditLimit.ToString("N2") ?? "N/A";
+                worksheet.Cells[i + 2, 6].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right; // Right align Credit Limit
             }
 
             return package.GetAsByteArray();
@@ -496,10 +516,40 @@ namespace CustomerCrud.Controllers
                     CreateTableCell(customer.CustomerType?.CustomerTypeName ?? "N/A"),
                     CreateTableCell(customer.CustomerAddress ?? "N/A"),
                     CreateTableCell(customer.BusinessStart.ToString("dd-MM-yyyy") ?? "N/A"),
-                    CreateTableCell(customer.CreditLimit.ToString("C") ?? "N/A")
+                    CreateTableCell(customer.CreditLimit.ToString("N2") ?? "N/A")
+
+                //CreateTableCell(customer.CustomerNo, AlignmentValues.Right), // Right-align Customer No
+                //CreateTableCell(customer.CustomerName, AlignmentValues.Left), // Left-align Name
+                //CreateTableCell(customer.CustomerType?.CustomerTypeName ?? "N/A", AlignmentValues.Center), // Center-align Type
+                //CreateTableCell(customer.CustomerAddress ?? "N/A", AlignmentValues.Left), // Left-align Address
+                //CreateTableCell(customer.BusinessStart.ToString("dd-MM-yyyy") ?? "N/A", AlignmentValues.Center), // Center-align Business Start
+                //CreateTableCell(customer.CreditLimit.ToString() ?? "N/A", AlignmentValues.Right) // Right-align Credit Limit
                 );
                 table.Append(row);
             }
+
+
+            //DocumentFormat.OpenXml.Wordprocessing.TableCell CreateTableCell(string text, AlignmentValues alignment)
+            //{
+            //    return new DocumentFormat.OpenXml.Wordprocessing.TableCell(
+            //        new DocumentFormat.OpenXml.Wordprocessing.TableCellProperties(
+            //            new DocumentFormat.OpenXml.Wordprocessing.TableCellWidth { Type = DocumentFormat.OpenXml.Wordprocessing.TableWidthUnitValues.Dxa, Width = "2400" },
+            //            new DocumentFormat.OpenXml.Wordprocessing.TableCellMargin(
+            //                new DocumentFormat.OpenXml.Wordprocessing.TopMargin { Width = "100", Type = DocumentFormat.OpenXml.Wordprocessing.TableWidthUnitValues.Dxa },
+            //                new DocumentFormat.OpenXml.Wordprocessing.BottomMargin { Width = "100", Type = DocumentFormat.OpenXml.Wordprocessing.TableWidthUnitValues.Dxa },
+            //                new DocumentFormat.OpenXml.Wordprocessing.LeftMargin { Width = "100", Type = DocumentFormat.OpenXml.Wordprocessing.TableWidthUnitValues.Dxa },
+            //                new DocumentFormat.OpenXml.Wordprocessing.RightMargin { Width = "100", Type = DocumentFormat.OpenXml.Wordprocessing.TableWidthUnitValues.Dxa }
+            //            )
+            //        ),
+            //        new DocumentFormat.OpenXml.Wordprocessing.Paragraph(
+            //            new DocumentFormat.OpenXml.Wordprocessing.ParagraphProperties(
+            //                new DocumentFormat.OpenXml.Wordprocessing.Justification { Val = alignment }
+            //            ),
+            //            new DocumentFormat.OpenXml.Wordprocessing.Run(new DocumentFormat.OpenXml.Wordprocessing.Text(text))
+            //        )
+            //    );
+            //}
+
 
             // Helper methods
             DocumentFormat.OpenXml.Wordprocessing.TableCell CreateTableCell(string text)
@@ -752,6 +802,22 @@ namespace CustomerCrud.Controllers
             }).ToListAsync();
             return Ok(customerTypes); // Return JSON response
         }
+
+        //[HttpGet]
+        //public IActionResult GetCustomerTypeSuggestions(string term)
+        //{
+        //    var customerTypes = _context.CustomerTypes
+        //        .Where(ct => ct.CustomerTypeName.Contains(term))
+        //        .Select(ct => new
+        //        {
+        //            label = ct.CustomerTypeName,
+        //            value = ct.CustomerTypeId
+        //        })
+        //        .ToList();
+
+        //    return Json(customerTypes);
+        //}
+
 
 
         [HttpPost]
