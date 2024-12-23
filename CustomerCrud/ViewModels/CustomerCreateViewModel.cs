@@ -21,5 +21,7 @@ namespace CustomerCrud.ViewModels
     public class AddressViewModel
     {
         public string AddressName { get; set; }
+        public string ContactPerson { get; set; }
+        public string PhoneNumber { get; set; }
     }
 }
