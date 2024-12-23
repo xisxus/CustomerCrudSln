@@ -1,5 +1,13 @@
 ﻿@model CustomerCreateViewModel
 
+<style>
+    .btn-custom {
+       
+        
+    }
+</style>
+
+
 <div class="container py-4">
     <h2 class="text-center mb-4">Create Customer</h2>
     <form asp-action="Create" method="post" id="customerForm">
@@ -29,7 +37,7 @@
                             <option>Select Customer Type</option>
                         </select>
                         <button type="button" class="btn btn-outline-secondary" id="addCustomerTypeBtn">
-                            <i class="fa fa-plus">+</i>
+                            <i class="fa fa-plus"></i>
                         </button>
                     </div>
                 </div>
@@ -70,7 +78,7 @@
                         <div class="input-group">
                             <input type="text" name="Addresses[@i].AddressName" value="@Model.Addresses[i].AddressName" class="form-control" placeholder="Enter Address" />
                             <button type="button" class="btn btn-danger remove-address">
-                                <i class="fa fa-trash">X</i>
+                                <i class="fa fa-trash"></i>
                             </button>
                         </div>
                     </div> 
@@ -95,7 +103,7 @@
     <!-- Customer Type Modal -->
     <!-- Customer Type Modal -->
     <div class="modal fade" id="customerTypeModal" tabindex="-1" aria-labelledby="customerTypeModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="customerTypeModalLabel">Customer Type</h5>
@@ -104,55 +112,82 @@
                 <div class="modal-body">
                     <!-- Add or Edit Customer Type -->
                     @* <h6 id="formTitle">Create a New Customer Type</h6> *@
-                    <form id="customerTypeForm">
-                        <div class="row">
-                            <input type="hidden" id="customerTypeId" /> <!-- Hidden field for ID -->
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label>Customer Number</label>
-                                    <input type="text" class="form-control" value="@ViewBag.CustomerTypeNumber" readonly />
+                    <div class="row">
+                        <div class="col-md-6 shadow p-4 bg-white rounded ">
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <h4>Customer Type</h4>
                                 </div>
+                                <div class="col-md-6">
+
+                                    <button type="button" class="btn btn-secondary btn-custom shadow-sm rounded" data-bs-dismiss="modal"><i class="fa fa-close">Close</i></button>
+                                    <button type="button" id="clearCustomerTypeBtn " class="btn btn-primary btn-custom shadow-sm rounded"><i class="fa fa-clear">Clear</i></button>
+                                    <button type="button" id="saveCustomerTypeBtn " class="btn btn-primary btn-custom shadow-sm rounded"><i class="fa fa-save"> Save</i></button>
+                                    <button type="button" id="updateCustomerTypeBtn " class="btn btn-success btn-custom shadow-sm rounded" style="display: none;"> <i class="fa fa-update">Update</i></button>
+                                </div>
+
                             </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="customerTypeName">Customer Type Name</label>
-                                    <input type="text" id="customerTypeName" class="form-control" placeholder="Enter Customer Type Name" required>
+
+
+                            <form id="customerTypeForm">
+                                <div class="row mt-3">
+                                    <input type="hidden" id="customerTypeId" /> <!-- Hidden field for ID -->
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Type Number</label>
+                                            <input type="text" class="form-control" value="@ViewBag.CustomerTypeNumber" readonly />
+                                        </div>
+                                    </div>
+
                                 </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="customerTypeShortName">Short Name</label>
-                                    <input type="text" id="customerTypeShortName" class="form-control" placeholder="Enter Short Name">
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="customerTypeName">Type Name</label>
+                                            <input type="text" id="customerTypeName" class="form-control" placeholder="Enter Customer Type Name" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="customerTypeShortName">Short Name</label>
+                                            <input type="text" id="customerTypeShortName" class="form-control" placeholder="Enter Short Name">
+                                        </div>
+                                    </div>
                                 </div>
+                            </form>
+                            <div class="row mt-3">
+                                @* <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> *@
+                                <button type="button" id="saveCustomerTypeBtn" class="btn btn-primary"><i class="fa fa-save"> Save</i></button>
+                                <button type="button" id="updateCustomerTypeBtn" class="btn btn-success" style="display: none;"><i class="fa fa-update">Update</i></button>
                             </div>
                         </div>
-                    </form>
-                    <div>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" id="saveCustomerTypeBtn" class="btn btn-primary">Save</button>
-                        <button type="button" id="updateCustomerTypeBtn" class="btn btn-success" style="display: none;">Update</button>
+                        <div class="col-md-6 shadow p-4 bg-white rounded">
+                            <div class="table-responsive">
+                                <table id="customerTypeTable" class="table table-striped table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Mark</th>
+                                            <th>NO</th>
+                                            <th>Name</th>
+                                            <th>Short Name</th>
+                                            @* <th>Actions</th> *@
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Data will be dynamically loaded via AJAX -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-3">
+                                <button id="deleteCustomerTypeBtn" class="btn btn-danger" disabled><i class="fa fa-trash">Delete Selected</i></button>
+                            </div>
+                        </div>
                     </div>
+
+                   
                     <hr />
                     <!-- Table for displaying customer types -->
-                    <div class="table-responsive">
-                        <table id="customerTypeTable" class="table table-striped table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Mark</th>
-                                    <th>NO</th>
-                                    <th>Name</th>
-                                    <th>Short Name</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Data will be dynamically loaded via AJAX -->
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="mt-3">
-                        <button id="deleteCustomerTypeBtn" class="btn btn-danger" disabled>Delete Selected</button>
-                    </div>
+                    
                 </div>
             </div>
         </div>
@@ -237,7 +272,7 @@
                         <div class="input-group">
                             <input type="text" name="Addresses[${addressCounter}].AddressName" class="form-control" placeholder="Enter Address" />
                             <button type="button" class="btn btn-danger remove-address">
-                                <i class="fa fa-trash">X</i>
+                                <i class="fa fa-trash"></i>
                             </button>
                         </div>
                     </div>`;
@@ -284,9 +319,10 @@
                         customerTypeTable.row.add([
                             `<input type="checkbox" class="mark-customer-type" data-id="${type.customerTypeId}" />`, // Mark checkbox
                             type.customerTypeNo, // ID
-                            type.customerTypeName, // Name
+                            `<button class="btn btn-link edit-customer-type" data-id="${type.customerTypeId}" data-name="${type.customerTypeName}" data-short-name="${type.shortName}">${type.customerTypeName}</button>`,
+              // type.customerTypeName, // Name
                             type.shortName || '-', // Short Name
-                            `<button class="btn btn-warning edit-customer-type" data-id="${type.customerTypeId}" data-name="${type.customerTypeName}" data-short-name="${type.shortName}">Edit</button>`
+              // `<button class="btn btn-link edit-customer-type" data-id="${type.customerTypeId}" data-name="${type.customerTypeName}" data-short-name="${type.shortName}">Edit</button>`
                         ]).draw();
                     });
                 },

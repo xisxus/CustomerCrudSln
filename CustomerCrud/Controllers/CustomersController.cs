@@ -36,7 +36,7 @@ namespace CustomerCrud.Controllers
         }
 
 
-        public async Task<IActionResult> Index1(int page = 1, int pageSize = 5, string sortField = "CustomerName", string sortOrder = "asc", string selectedIds = "")
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 5, string sortField = "CustomerName", string sortOrder = "asc", string selectedIds = "")
         {
             // Parse the selected IDs (if any)
             var selectedCustomerIds = string.IsNullOrEmpty(selectedIds)
@@ -104,7 +104,7 @@ namespace CustomerCrud.Controllers
 
 
 
-        public async Task<IActionResult> Index(int page = 1, int pageSize = 5, string sortField = "CustomerName", string sortOrder = "asc", string selectedIds = "")
+        public async Task<IActionResult> Index1(int page = 1, int pageSize = 5, string sortField = "CustomerName", string sortOrder = "asc", string selectedIds = "")
         {
             // Parse the selected IDs (if any)
             var selectedCustomerIds = string.IsNullOrEmpty(selectedIds)
