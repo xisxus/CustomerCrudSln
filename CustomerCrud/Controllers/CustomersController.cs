@@ -50,7 +50,7 @@ namespace CustomerCrud.Controllers
             // Base query for customers
             var query = _context.Customers
                 .Include(c => c.CustomerType)
-                .Include(c => c.AddressList)
+                .Include(c => c.AddressList)  // Ensure addresses are included
                 .Select(c => new CustomerListViewModel
                 {
                     CustomerId = c.CustomersId,
@@ -61,7 +61,13 @@ namespace CustomerCrud.Controllers
                     CustomerAddress = c.CustomerAddress,
                     CreditLimit = c.CreditLimit,
                     AdditionalAddressesCount = c.AddressList.Count,
-                    IsSelected = selectedCustomerIds.Contains(c.CustomersId) // Mark as selected
+                    IsSelected = selectedCustomerIds.Contains(c.CustomersId),
+
+                    // Map the address name to the DeliveryAddresses list
+                    Addresses = c.AddressList.Select(a => new AddressViewModel
+                    {
+                        AddressName = a.AddressName  // Assuming AddressName is the field in your Address entity
+                    }).ToList()
                 });
 
             // Apply sorting
@@ -104,7 +110,6 @@ namespace CustomerCrud.Controllers
         }
 
 
-
         public async Task<IActionResult> Index1(int page = 1, int pageSize = 5, string sortField = "CustomerName", string sortOrder = "asc", string selectedIds = "")
         {
             // Parse the selected IDs (if any)
@@ -129,7 +134,11 @@ namespace CustomerCrud.Controllers
                     CustomerAddress = c.CustomerAddress,
                     CreditLimit = c.CreditLimit,
                     AdditionalAddressesCount = c.AddressList.Count,
-                    IsSelected = selectedCustomerIds.Contains(c.CustomersId) // Mark as selected
+                    IsSelected = selectedCustomerIds.Contains(c.CustomersId) ,
+                    Addresses = c.AddressList.Select(a => new AddressViewModel
+                    {
+                        AddressName = a.AddressName
+                    }).ToList()
                 });
 
             // Apply sorting
@@ -284,7 +293,7 @@ namespace CustomerCrud.Controllers
                                     .Border(1).BorderColor(Colors.Black)
                                     .Padding(5) // Add padding to the header
                                     .AlignCenter() // Center-align the text
-                                    .Text("Customer No").Bold();
+                                    .Text("Customer ID").Bold();
 
                                 header.Cell()
                                     .Border(1).BorderColor(Colors.Black)
@@ -351,10 +360,10 @@ namespace CustomerCrud.Controllers
                                     .Text(customer.BusinessStart.ToString("dd-MM-yyyy") ?? "N/A");
 
                                 table.Cell()
-                                    .Border(1).BorderColor(Colors.Black)
-                                    .Padding(5)
-                                    .AlignRight()
-                                    .Text(customer.CreditLimit.ToString("N2") ?? "N/A");
+                                     .Border(1).BorderColor(Colors.Black)
+                                     .Padding(5)
+                                     .AlignRight()
+                                     .Text(customer.CreditLimit == 0 ? "0" : customer.CreditLimit.ToString("N0"));
                             }
                         });
 
@@ -375,54 +384,148 @@ namespace CustomerCrud.Controllers
            
         }
 
+
         public byte[] GenerateExcel(List<Customers> customers)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial; // Set the license context
 
             using var package = new ExcelPackage();
-
             var worksheet = package.Workbook.Worksheets.Add("Customers");
 
+            // Set title
+            worksheet.Cells[1, 1].Value = "Customer Report";
+            worksheet.Cells[1, 1, 1, 6].Merge = true; // Merge cells for the title
+            worksheet.Cells[1, 1].Style.Font.Size = 16; // Title font size
+            worksheet.Cells[1, 1].Style.Font.Bold = true; // Title bold
+            worksheet.Cells[1, 1].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center; // Center align title
+            worksheet.Cells[1, 1].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid; // Fill pattern
+            worksheet.Cells[1, 1].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightBlue); // Title background color
+
             // Add headers
-            worksheet.Cells[1, 1].Value = "Customer No";
-            worksheet.Cells[1, 2].Value = "Name";
-            worksheet.Cells[1, 3].Value = "Type";
-            worksheet.Cells[1, 4].Value = "Address";
-            worksheet.Cells[1, 5].Value = "Business Start";
-            worksheet.Cells[1, 6].Value = "Credit Limit";
+            worksheet.Cells[2, 1].Value = "Customer ID";
+            worksheet.Cells[2, 1].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+
+            worksheet.Cells[2, 2].Value = "Name";
+            worksheet.Cells[2, 2].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+
+            worksheet.Cells[2, 3].Value = "Type";
+            worksheet.Cells[2, 3].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+
+            worksheet.Cells[2, 4].Value = "Address";
+            worksheet.Cells[2, 4].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+
+            worksheet.Cells[2, 5].Value = "Business Start";
+            worksheet.Cells[2, 5].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+
+            worksheet.Cells[2, 6].Value = "Credit Limit";
+            worksheet.Cells[2, 6].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+
+
+            // Style headers
+            using (var headerRange = worksheet.Cells[2, 1, 2, 6])
+            {
+                headerRange.Style.Font.Bold = true; // Bold headers
+                headerRange.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid; // Fill pattern
+                headerRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray); // Header background color
+                headerRange.Style.Border.BorderAround(OfficeOpenXml.Style.ExcelBorderStyle.Thin, System.Drawing.Color.Black); // Border around headers
+            }
 
             // Add data
             for (int i = 0; i < customers.Count; i++)
             {
-                //worksheet.Cells[i + 2, 1].Value = customers[i].CustomerNo;
-                //worksheet.Cells[i + 2, 2].Value = customers[i].CustomerName;
-                //worksheet.Cells[i + 2, 3].Value = customers[i].CustomerType?.CustomerTypeName ?? "N/A";
-                //worksheet.Cells[i + 2, 4].Value = customers[i].CustomerAddress ?? "N/A";
-                //worksheet.Cells[i + 2, 5].Value = customers[i].BusinessStart.ToString("dd-MM-yyyy") ?? "N/A";
-                //worksheet.Cells[i + 2, 6].Value = customers[i].CreditLimit.ToString("N2") ?? "N/A";
+                worksheet.Cells[i + 3, 1].Value = customers[i].CustomerNo;
+                worksheet.Cells[i + 3, 1].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
 
-                // Right align "Customer No" and "Credit Limit"
-                worksheet.Cells[i + 2, 1].Value = customers[i].CustomerNo;
-                worksheet.Cells[i + 2, 1].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                worksheet.Cells[i + 3, 2].Value = customers[i].CustomerName;
+                worksheet.Cells[i + 3, 2].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left; // Left align Name
 
-                worksheet.Cells[i + 2, 2].Value = customers[i].CustomerName;
-                worksheet.Cells[i + 2, 2].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left; // Left align Name
+                worksheet.Cells[i + 3, 3].Value = customers[i].CustomerType?.CustomerTypeName ?? "N/A";
+                worksheet.Cells[i + 3, 3].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center; // Center align Type
 
-                worksheet.Cells[i + 2, 3].Value = customers[i].CustomerType?.CustomerTypeName ?? "N/A";
-                worksheet.Cells[i + 2, 3].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center; // Left align Type
+                worksheet.Cells[i + 3, 4].Value = customers[i].CustomerAddress ?? "N/A";
+                worksheet.Cells[i + 3, 4].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left; // Left align Address
 
-                worksheet.Cells[i + 2, 4].Value = customers[i].CustomerAddress ?? "N/A";
-                worksheet.Cells[i + 2, 4].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left; // Left align Address
+                worksheet.Cells[i + 3, 5].Value = customers[i].BusinessStart.ToString("dd-MM-yyyy") ?? "N/A";
+                worksheet.Cells[i + 3, 5].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center; // Center align Business Start
 
-                worksheet.Cells[i + 2, 5].Value = customers[i].BusinessStart.ToString("dd-MM-yyyy") ?? "N/A";
-                worksheet.Cells[i + 2, 5].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center; // Center align Business Start
-
-                worksheet.Cells[i + 2, 6].Value = customers[i].CreditLimit.ToString("N2") ?? "N/A";
-                worksheet.Cells[i + 2, 6].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right; // Right align Credit Limit
+                worksheet.Cells[i + 3, 6].Value = customers[i].CreditLimit == 0 ? "0" : customers[i].CreditLimit.ToString("N0");
+                worksheet.Cells[i + 3, 6].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right; // Right align Credit Limit
             }
+
+            // Add borders to all cells with data
+            var dataRange = worksheet.Cells[2, 1, customers.Count + 2, 6];
+            dataRange.Style.Border.BorderAround(OfficeOpenXml.Style.ExcelBorderStyle.Thin, System.Drawing.Color.Black); // Border around all data
+
+            // Add borders to each cell in the data range
+            for (int row = 2; row <= customers.Count + 2; row++)
+            {
+                for (int col = 1; col <= 6; col++)
+                {
+                    worksheet.Cells[row, col].Style.Border.BorderAround(OfficeOpenXml.Style.ExcelBorderStyle.Thin, System.Drawing.Color.Black);
+                }
+            }
+
+            // Add border to the title
+            worksheet.Cells[1, 1, 1, 6].Style.Border.BorderAround(OfficeOpenXml.Style.ExcelBorderStyle.Thin, System.Drawing.Color.Black); // Border around the title
+
+            // Auto-fit columns
+            worksheet.Cells.AutoFitColumns();
 
             return package.GetAsByteArray();
         }
+
+
+
+
+        //public byte[] GenerateExcel(List<Customers> customers)
+        //{
+        //    ExcelPackage.LicenseContext = LicenseContext.NonCommercial; // Set the license context
+
+        //    using var package = new ExcelPackage();
+
+        //    var worksheet = package.Workbook.Worksheets.Add("Customers");
+
+        //    // Add headers
+        //    worksheet.Cells[1, 1].Value = "Customer ID";
+        //    worksheet.Cells[1, 2].Value = "Name";
+        //    worksheet.Cells[1, 3].Value = "Type";
+        //    worksheet.Cells[1, 4].Value = "Address";
+        //    worksheet.Cells[1, 5].Value = "Business Start";
+        //    worksheet.Cells[1, 6].Value = "Credit Limit";
+
+        //    // Add data
+        //    for (int i = 0; i < customers.Count; i++)
+        //    {
+        //        //worksheet.Cells[i + 2, 1].Value = customers[i].CustomerNo;
+        //        //worksheet.Cells[i + 2, 2].Value = customers[i].CustomerName;
+        //        //worksheet.Cells[i + 2, 3].Value = customers[i].CustomerType?.CustomerTypeName ?? "N/A";
+        //        //worksheet.Cells[i + 2, 4].Value = customers[i].CustomerAddress ?? "N/A";
+        //        //worksheet.Cells[i + 2, 5].Value = customers[i].BusinessStart.ToString("dd-MM-yyyy") ?? "N/A";
+        //        //worksheet.Cells[i + 2, 6].Value = customers[i].CreditLimit.ToString("N2") ?? "N/A";
+
+        //        // Right align "Customer No" and "Credit Limit"
+        //        worksheet.Cells[i + 2, 1].Value = customers[i].CustomerNo;
+        //        worksheet.Cells[i + 2, 1].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+
+        //        worksheet.Cells[i + 2, 2].Value = customers[i].CustomerName;
+        //        worksheet.Cells[i + 2, 2].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left; // Left align Name
+
+        //        worksheet.Cells[i + 2, 3].Value = customers[i].CustomerType?.CustomerTypeName ?? "N/A";
+        //        worksheet.Cells[i + 2, 3].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center; // Left align Type
+
+        //        worksheet.Cells[i + 2, 4].Value = customers[i].CustomerAddress ?? "N/A";
+        //        worksheet.Cells[i + 2, 4].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left; // Left align Address
+
+        //        worksheet.Cells[i + 2, 5].Value = customers[i].BusinessStart.ToString("dd-MM-yyyy") ?? "N/A";
+        //        worksheet.Cells[i + 2, 5].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center; // Center align Business Start
+
+        //        //worksheet.Cells[i + 2, 6].Value = customers[i].CreditLimit.ToString() ?? "0";
+        //        worksheet.Cells[i + 2, 6].Value = customers[i].CreditLimit == 0 ? "0" : customers[i].CreditLimit.ToString("N0");
+        //        worksheet.Cells[i + 2, 6].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right; // Right align Credit Limit
+        //    }
+
+        //    return package.GetAsByteArray();
+        //}
 
 
 
@@ -497,7 +600,7 @@ namespace CustomerCrud.Controllers
             // Add headers
             var headerRow = new DocumentFormat.OpenXml.Wordprocessing.TableRow();
             headerRow.Append(
-                CreateHeaderCell("Customer No"),
+                CreateHeaderCell("Customer ID"),
                 CreateHeaderCell("Name"),
                 CreateHeaderCell("Type"),
                 CreateHeaderCell("Address"),
@@ -516,7 +619,8 @@ namespace CustomerCrud.Controllers
                     CreateTableCell(customer.CustomerType?.CustomerTypeName ?? "N/A"),
                     CreateTableCell(customer.CustomerAddress ?? "N/A"),
                     CreateTableCell(customer.BusinessStart.ToString("dd-MM-yyyy") ?? "N/A"),
-                    CreateTableCell(customer.CreditLimit.ToString("N2") ?? "N/A")
+                    //CreateTableCell(customer.CreditLimit.ToString() ?? "0")
+                    CreateTableCell(customer.CreditLimit == 0 ? "0" : customer.CreditLimit.ToString("N0"))
 
                 //CreateTableCell(customer.CustomerNo, AlignmentValues.Right), // Right-align Customer No
                 //CreateTableCell(customer.CustomerName, AlignmentValues.Left), // Left-align Name

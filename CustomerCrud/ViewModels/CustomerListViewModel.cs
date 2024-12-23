@@ -11,6 +11,7 @@
         public decimal? CreditLimit { get; set; }
         public int AdditionalAddressesCount { get; set; }
         public bool IsSelected { get; set; }
+        public List<AddressViewModel> Addresses { get; set; } = new List<AddressViewModel>();
     }
 
     public class CustomerIndexViewModel
