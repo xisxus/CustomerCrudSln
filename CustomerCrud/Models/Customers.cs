@@ -18,6 +18,10 @@ namespace CustomerCrud.Models
         [Required(ErrorMessage = "Address is Required.")]
         [Column(TypeName = "nvarchar(max)")]
         public string CustomerAddress { get; set; }
+        public string Email { get; set; }
+        public string PhoneNumber { get; set; }
+        public string CustomerPhoto { get; set; }
+        public byte[] CustomerSignature { get; set; }
         public DateTime BusinessStart { get; set; }
         public int CustomerTypeId { get; set; }
         public decimal CreditLimit { get; set; }

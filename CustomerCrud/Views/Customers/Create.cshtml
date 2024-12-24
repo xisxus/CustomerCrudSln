@@ -7,82 +7,176 @@
 
 
 <div class="container py-4">
-    <h2 class="text-center mb-4">Create Customer</h2>
+   
     <form asp-action="Create" method="post" id="customerForm">
 
         <!-- Validation Message -->
         <div id="validationMessage" class="mt-2"></div> <!-- This is where the validation message will show -->
-        <!-- First Row -->
-        <div class="row mb-3">
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label>Customer Number</label>
-                    <input type="text" class="form-control" value="@ViewBag.CustomerNumber" readonly />
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label asp-for="CustomerName">Customer Name</label>
-                    <input asp-for="CustomerName" class="form-control" id="CustomerName" />
-                    <span asp-validation-for="CustomerName" class="text-danger"></span>
-                </div>
-            </div>
-            <div class="col-md-4">
 
+        
+            <div class="row shadow p-3 mb-5 bg-white rounded g-2">
 
-                @*  <div class="form-group">
-                    <label asp-for="CustomerTypeId">Customer Type</label>
-                    <div class="input-group">
-                        <select asp-for="CustomerTypeId" asp-items="ViewBag.CustomerTypes" class="form-control">
-                            <option>Select Customer Type</option>
-                        </select>
-                        <button type="button" class="btn btn-outline-secondary" id="addCustomerTypeBtn">
-                            <i class="fa fa-plus"></i>
-                        </button>
+                <div class="row">
+                    <div class="col-md-9">
+                    <h2 class="text-center mb-4 float-md-start">Create Customer</h2>
+
                     </div>
-                </div> *@
-
-                <div class="form-group">
-                    <label asp-for="CustomerTypeId">Customer Type</label>
-                    <div class="input-group">
-                        <input type="text" id="customerTypeSearch" class="form-control" placeholder="Search customer type...">
-                        <input type="hidden" asp-for="CustomerTypeId" id="CustomerTypeId">
-                        <button type="button" class="btn btn-outline-secondary" id="addCustomerTypeBtn">
-                            <i class="fa fa-plus"></i>
-                        </button>
+                <div class="col-md-3 ">
+                    <h6 class="float-md-end">Home/Create</h6>
                     </div>
                 </div>
+                <div class="row">
+                <div class="col-md-1"></div>
+                <div class="col-md-6 shadow p-3 mb-5 bg-white rounded g-2 me-4">
+                    <!-- First Row -->
+                    <div class="row mb-3">
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Customer ID</label>
+                                <input type="text" class="form-control" value="@ViewBag.CustomerNumber" readonly />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="CustomerName">Customer Name</label>
+                                <input asp-for="CustomerName" class="form-control" id="CustomerName" />
+                                <span asp-validation-for="CustomerName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Second Row -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="CustomerAddress">Customer Address</label>
+                                <input asp-for="CustomerAddress" class="form-control" id="CustomerAddress" />
+                                <span asp-validation-for="CustomerAddress" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="BusinessStart">Business Start</label>
+                                <input asp-for="BusinessStart" class="form-control" type="date" id="BusinessStart" />
+                                <span asp-validation-for="BusinessStart" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+
+
+
+
+                            <div class="form-group">
+                                <label asp-for="CustomerTypeId">Customer Type</label>
+                                <div class="input-group">
+                                    <input type="text" id="customerTypeSearch" class="form-control" placeholder="Search customer type...">
+                                    <input type="hidden" asp-for="CustomerTypeId" id="CustomerTypeId">
+                                    <button type="button" class="btn btn-outline-secondary" id="addCustomerTypeBtn">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
 
 
 
 
 
-            </div>
-        </div>
+                        </div>
 
-        <!-- Second Row -->
-        <div class="row mb-3">
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label asp-for="CustomerAddress">Customer Address</label>
-                    <input asp-for="CustomerAddress" class="form-control" id="CustomerAddress" />
-                    <span asp-validation-for="CustomerAddress" class="text-danger"></span>
+
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="CreditLimit">Credit Limit</label>
+                                <input asp-for="CreditLimit" class="form-control" type="number" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Second Row -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="Email">Customer Email</label>
+                                <input asp-for="Email" class="form-control" id="CustomerEmail" type="email" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="PhoneNumber">Phone Number</label>
+                                <input asp-for="PhoneNumber" class="form-control" type="text" id="PhoneNumber" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                    </div>
+
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label asp-for="BusinessStart">Business Start</label>
-                    <input asp-for="BusinessStart" class="form-control" type="date" id="BusinessStart" />
-                    <span asp-validation-for="BusinessStart" class="text-danger"></span>
+
+
+
+
+
+                <div class="col-md-4 shadow p-3 mb-5 bg-white rounded g-2">
+                    <!-- Customer Photo -->
+                    <div class="form-group">
+                        <label for="CustomerPhoto">Customer Photo</label>
+                        <!-- This is the Browse Photo button -->
+                        <button type="button" class="btn btn-primary" id="browsePhotoBtn">Browse Photo</button>
+                        <input id="CustomerPhoto" name="CustomerPhoto" type="file" class="form-control" style="display: none;" />
+                        <div class="mt-2" id="CustomerPhotoPreviewContainer">
+                            <!-- Preview image for customer photo will be shown here -->
+                            <img id="CustomerPhotoPreview" src="https://via.placeholder.com/150" alt="No Image Selected" style="max-width: 100%;" />
+                        </div>
+                        <div class="mt-2">
+                            <!-- Clear Photo button -->
+                            <button type="button" class="btn btn-secondary" id="clearPhotoBtn">Clear Photo</button>
+                        </div>
+                    </div>
+
+                    <!-- Customer Signature -->
+                    <div class="form-group">
+                        <label for="CustomerSignature">Customer Signature</label>
+                        <!-- This is the Browse Signature button -->
+                        <button type="button" class="btn btn-primary" id="browseSignatureBtn">Browse Signature</button>
+                        <input id="CustomerSignature" name="CustomerSignature" type="file" class="form-control" style="display: none;" />
+                        <div class="mt-2" id="CustomerSignaturePreviewContainer">
+                            <!-- Preview image for customer signature will be shown here -->
+                            <img id="CustomerSignaturePreview" src="https://via.placeholder.com/150" alt="No Image Selected" style="max-width: 100%;" />
+                        </div>
+                        <div class="mt-2">
+                            <!-- Clear Signature button -->
+                            <button type="button" class="btn btn-secondary" id="clearSignatureBtn">Clear Signature</button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label asp-for="CreditLimit">Credit Limit</label>
-                    <input asp-for="CreditLimit" class="form-control" />
+
+
+
+
+
+
+
                 </div>
+
+               
+
+
+
             </div>
-        </div>
+        
+
+
+       
+
+       
 
         <hr/>
 
@@ -109,27 +203,21 @@
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="input-group ">
-                                    <input type="text" name="Addresses[@i].AddressName" value="@Model.Addresses[i].AddressName" class="form-control" placeholder="Enter Address" />
-                                    @* <button type="button" class="btn btn-danger remove-address"><i class="fa fa-trash"></i></button> *@
+                                     <input type="text" name="Addresses[@i].AddressName" value="@Model.Addresses[i].AddressName" class="form-control" placeholder="Enter Address" /> 
+                                   
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="input-group ">
-                                    <input type="text" name="Addresses[@i].ContactPerson" value="@Model.Addresses[i].ContactPerson" class="form-control" placeholder="Enter ContactPerson" />
-                                    @*  <button type="button" class="btn btn-danger remove-address">
-                                <i class="fa fa-trash"></i>
-                                </button> *@
+                                     <input type="text" name="Addresses[@i].ContactPerson" value="@Model.Addresses[i].ContactPerson" class="form-control" placeholder="Enter ContactPerson" /> 
+                                  
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="input-group">
-                                    <input type="text" name="Addresses[@i].PhoneNumber" value="@Model.Addresses[i].PhoneNumber" class="form-control" placeholder="Enter PhoneNumber" />
-                                    <button type="button" class="btn btn-danger remove-address">
-                                        <i class="fa fa-trash"></i>
-                                    </button>
-                                  @*   <button type="button" id="addAddressBtn" class="btn btn-secondary">
-                                        <i class="fa fa-plus"></i>
-                                    </button> *@
+                                     <input type="text" name="Addresses[@i].PhoneNumber" value="@Model.Addresses[i].PhoneNumber" class="form-control" placeholder="Enter PhoneNumber" /> 
+                                     <button type="button" class="btn btn-danger remove-address"><i class="fa fa-trash"></i></button> 
+                               
                                 </div>
                             </div>
                         </div>
@@ -139,6 +227,7 @@
                     </div>
                 }
             </div>
+
             @*  <button type="button" id="addAddressBtn" class="btn btn-secondary">
                 <i class="fa fa-plus"></i> Add Address
             </button> *@
@@ -187,6 +276,8 @@
                                     <button type="button" id="saveCustomerTypeBtn" class="btn btn-primary btn-custom shadow-sm rounded"><i class="fa fa-save"> Save</i></button>
                                     <button type="button" id="updateCustomerTypeBtn" class="btn btn-success btn-custom shadow-sm rounded" style="display: none;"> <i class="fa fa-update">Update</i></button>
 
+
+
                                     <button id="deleteCustomerTypeBtn" class="btn btn-danger" disabled><i class="fa fa-trash"> Delete</i></button>
 
                                     <button type="button" id="clearCustomerTypeBtn" class="btn btn-primary btn-custom shadow-sm rounded"><i class="fa fa-clear">Clear</i></button>
@@ -221,14 +312,17 @@
                                         </div>
                                     </div>
                                 </div>
+
+                               
                             </form>
                             <div class="row mt-3">
                                 <div class="col-md-9">
                                 </div>
-                                <div class="col-md-3">
-                                    <button type="button" id="saveCustomerTypeBtn" class="btn btn-primary"><i class="fa fa-save"> Save</i></button>
-                                    <button type="button" id="updateCustomerTypeBtn" class="btn btn-success" style="display: none;"><i class="fa fa-update">Update</i></button>
-                                </div>
+                               @*  <div class="col-md-3">
+                                    <button type="button" id="saveCustomerTypeBtn" class="btn btn-primary btn-custom shadow-sm rounded"><i class="fa fa-save"> Save</i></button>
+                                    <button type="button" id="updateCustomerTypeBtn" class="btn btn-success btn-custom shadow-sm rounded" style="display: none;"> <i class="fa fa-update">Update</i></button>
+
+                                </div> *@
 
                             </div>
                         </div>
@@ -283,7 +377,56 @@
             $(document).ready(function () {
 
 
+                     // Function to preview image when file is selected
+            // Function to preview image when file is selected
+            // Trigger file input click when Browse Photo button is clicked
+        $("#browsePhotoBtn").click(function () {
+            $("#CustomerPhoto").click();
+        });
 
+        // Trigger file input click when Browse Signature button is clicked
+        $("#browseSignatureBtn").click(function () {
+            $("#CustomerSignature").click();
+        });
+
+        // Function to preview image when file is selected
+        function previewImage(input, previewId) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                // Display the image after it's loaded
+                $("#" + previewId).attr("src", e.target.result).show();  // Set the source of the image and show it
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        // Event listener for Customer Photo file input change
+        $("#CustomerPhoto").change(function () {
+            previewImage(this, "CustomerPhotoPreview");
+        });
+
+        // Event listener for Customer Signature file input change
+        $("#CustomerSignature").change(function () {
+            previewImage(this, "CustomerSignaturePreview");
+        });
+
+        // Clear Customer Photo preview and reset file input
+        $("#clearPhotoBtn").click(function () {
+            $("#CustomerPhoto").val(''); // Reset the file input
+            $("#CustomerPhotoPreview").attr("src", "https://via.placeholder.com/150"); // Reset to default image
+            $("#CustomerPhotoPreview").show(); // Show the default image
+        });
+
+        // Clear Customer Signature preview and reset file input
+        $("#clearSignatureBtn").click(function () {
+            $("#CustomerSignature").val(''); // Reset the file input
+            $("#CustomerSignaturePreview").attr("src", "https://via.placeholder.com/150"); // Reset to default image
+            $("#CustomerSignaturePreview").show(); // Show the default image
+        });
+
+
+
+
+        //-----------------
 
 
                 let addressCounter = @Model.Addresses.Count;
@@ -340,17 +483,17 @@
                             <div class="row">
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <input type="text" name="Addresses[${addressCounter}].AddressName" class="form-control" placeholder="Enter Address" required />
+                                        <input type="text" name="Addresses[${addressCounter}].AddressName" class="form-control" placeholder="Enter Address"  />
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <input type="text" name="Addresses[${addressCounter}].ContactPerson" class="form-control" placeholder="Enter Contact Person" required />
+                                        <input type="text" name="Addresses[${addressCounter}].ContactPerson" class="form-control" placeholder="Enter Contact Person"  />
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="input-group">
-                                        <input type="text" name="Addresses[${addressCounter}].PhoneNumber" class="form-control" placeholder="Enter Phone Number" required />
+                                        <input type="text" name="Addresses[${addressCounter}].PhoneNumber" class="form-control" placeholder="Enter Phone Number"  />
                                         <button type="button" class="btn btn-danger remove-address" title="Remove Address">
                                             <i class="fa fa-trash"></i>
                                         </button>
@@ -456,7 +599,7 @@
             });
 
             // Add dropdown arrow and functionality
-            $("#customerTypeSearch").after('<span class="input-group-text dropdown-toggle" style="cursor: pointer;"><i class="fa fa-chevron-down"></i></span>');
+            $("#customerTypeSearch").after('<span class="input-group-text dropdown-toggle" style="cursor: pointer;"><i class=""></i></span>');
 
             $(".dropdown-toggle").click(function() {
                 $("#customerTypeSearch").focus();
@@ -518,6 +661,8 @@
 
             // Save new customer type
                    $('#saveCustomerTypeBtn').click(function () {
+
+                       alert('click')
                 const newTypeName = $('#customerTypeName').val().trim();
                 const newShortName = $('#customerTypeShortName').val().trim();
 
@@ -647,7 +792,9 @@
                     data: { customerTypeIds: markedIds },
                     success: function (response) {
                         if (response.success) {
+                            alert('Deleted Successfull')
                             $('#addCustomerTypeBtn').click();
+                             $('#addCustomerTypeBtn').click();
                         } else {
                             alert('Error deleting customer types.');
                         }

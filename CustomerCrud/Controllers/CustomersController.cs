@@ -30,10 +30,12 @@ namespace CustomerCrud.Controllers
     public class CustomersController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IWebHostEnvironment _env;
 
-        public CustomersController(AppDbContext context)
+        public CustomersController(AppDbContext context, IWebHostEnvironment env)
         {
             _context = context;
+            _env = env;
         }
 
 
@@ -58,12 +60,18 @@ namespace CustomerCrud.Controllers
                     CustomerId = c.CustomersId,
                     CustomerName = c.CustomerName,
                     CustomerNo = c.CustomerNo,
+                    Email = c.Email,
+                    PhoneNumber = c.PhoneNumber,
                     BusinessStart = c.BusinessStart,
                     CustomerTypeName = c.CustomerType.CustomerTypeName,
                     CustomerAddress = c.CustomerAddress,
                     CreditLimit = c.CreditLimit,
                     AdditionalAddressesCount = c.AddressList.Count,
+                    CustomerPhotoLink = c.CustomerPhoto,
+                    CustomerSignature = c.CustomerSignature,
                     IsSelected = selectedCustomerIds.Contains(c.CustomersId),
+
+
 
                     // Map the address name to the DeliveryAddresses list
                     Addresses = c.AddressList.Select(a => new AddressViewModel
@@ -739,6 +747,8 @@ namespace CustomerCrud.Controllers
                 CreditLimit = customer.CreditLimit,
                 Addresseslo = customer.AddressList.Select(a => new AddressViewModel
                 {
+                    ContactPerson = a.ContactPerson,
+                    PhoneNumber = a.PhoneNumber,
                     AddressName = a.AddressName
                 }).ToList()
             };
@@ -791,11 +801,65 @@ namespace CustomerCrud.Controllers
             return View(viewModel);
         }
 
+
+        private async Task<string> SaveCustomerPhotoAsync(IFormFile photo, string customFileName)
+        {
+            if (photo != null && photo.Length > 0)
+            {
+                // Define the folder path where you want to save the image
+                var folderPath = Path.Combine(_env.WebRootPath, "images");
+
+                // Create the folder if it does not exist
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
+
+                // Get the file extension
+                var fileExtension = Path.GetExtension(photo.FileName);
+
+                // Use custom file name with the original file extension (or a custom extension if needed)
+                var fileName = customFileName + fileExtension;
+
+                // Define the full file path
+                var filePath = Path.Combine(folderPath, fileName);
+
+                // Save the file to the server
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await photo.CopyToAsync(stream);
+                }
+
+                // Return the relative path to the image
+                return "/images/" + fileName;
+            }
+            return null;
+        }
+
+        private async Task<byte[]> ConvertFileToByteArray(IFormFile file)
+        {
+            if (file != null && file.Length > 0)
+            {
+                using (var memoryStream = new MemoryStream())
+                {
+                    await file.CopyToAsync(memoryStream); // Copy the file content to the memory stream
+                    return memoryStream.ToArray(); // Convert the memory stream content to a byte array
+                }
+            }
+            return null;
+        }
+
+
+
+
         [HttpPost]
         public async Task<IActionResult> Create(CustomerCreateViewModel viewModel)
         {
             try
             {
+
+                var customerNumber = GenerateCustomerNumber();  
+
                 if (viewModel.CustomerName == null || viewModel.CustomerAddress == null || viewModel.CustomerTypeId == 0)
                 {
                     if (viewModel.CustomerName == null && viewModel.CustomerAddress == null && viewModel.CustomerTypeId == 0)
@@ -819,19 +883,43 @@ namespace CustomerCrud.Controllers
 
                 List<AddressViewModel> addrss = new List<AddressViewModel>();
 
-                foreach (var item in viewModel.Addresses)
+                if (viewModel.Addresses.Count == 1)
                 {
-
-                    if (item.AddressName == null || item.ContactPerson == null || item.PhoneNumber == null)
+                    foreach (var item in viewModel.Addresses)
                     {
-                        return Json(new { success = false, message = "Please Enter AddressName or ContactPerson or PhoneNumber" });
-                    }
-
-                        if (item.AddressName != null && item.ContactPerson != null && item.PhoneNumber != null)
-                    {
-                        addrss.Add(item);
+                        if ((item.AddressName == null && item.ContactPerson == null && item.PhoneNumber == null))
+                        {
+                            addrss.Clear();
+                        }
+                        //else
+                        //{
+                        //    return Json(new { success = false, message = "Please Enter AddressName or ContactPerson or PhoneNumber" });
+                        //}
                     }
                 }
+                else
+                {
+                    foreach (var item in viewModel.Addresses)
+                    {
+
+                        if ((item.AddressName == null || item.ContactPerson == null || item.PhoneNumber == null))
+                        {
+                            return Json(new { success = false, message = "Please Enter AddressName or ContactPerson or PhoneNumber" });
+                        }
+
+                        if (item.AddressName != null && item.ContactPerson != null && item.PhoneNumber != null)
+                        {
+                            addrss.Add(item);
+                        }
+                    }
+                }
+
+
+              
+                    var customerPhoto = await SaveCustomerPhotoAsync(viewModel.CustomerPhoto, customerNumber);
+
+                var sign = await ConvertFileToByteArray(viewModel.CustomerSignature);
+
 
                 viewModel.Addresses = addrss;
 
@@ -848,12 +936,16 @@ namespace CustomerCrud.Controllers
 
                 var customer = new Customers
                 {
-                    CustomerNo = GenerateCustomerNumber(),
+                    CustomerNo = customerNumber,
                     CustomerName = viewModel.CustomerName,
                     CustomerAddress = viewModel.CustomerAddress,
                     BusinessStart = viewModel.BusinessStart,
                     CreditLimit = viewModel.CreditLimit,
                     CustomerTypeId = viewModel.CustomerTypeId,
+                    Email = viewModel.Email,
+                    PhoneNumber = viewModel.PhoneNumber,
+                    CustomerPhoto = customerPhoto,
+                    CustomerSignature = sign,
                     AddressList = viewModel.Addresses.Select(a => new Address
                     {
                         ContactPerson = a.ContactPerson,
@@ -1210,12 +1302,17 @@ namespace CustomerCrud.Controllers
         
         public IActionResult DeleteConfirmed(int id)
         {
-            var customer = _context.Customers.FirstOrDefault(c => c.CustomersId == id);
+            var customer = _context.Customers.Include(c => c.AddressList).FirstOrDefault(c => c.CustomersId == id);
             if (customer == null)
             {
                 return Json(new { success = false, message = "Customer not found." });
             }
 
+             _context.Addresses.RemoveRange(customer.AddressList); // Only if you need to remove related addresses
+
+            //_context.Addresses
+
+            // Remove the customer
             _context.Customers.Remove(customer);
             _context.SaveChanges();
 

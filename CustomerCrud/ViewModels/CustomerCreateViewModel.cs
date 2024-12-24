@@ -8,6 +8,8 @@ namespace CustomerCrud.ViewModels
         public string? CustomerName { get; set; }
         public string? CustomerNo { get; set; }
         public string? CustomerAddress { get; set; }
+        public string Email { get; set; }
+        public string PhoneNumber { get; set; }
 
         public DateTime BusinessStart { get; set; } 
 
@@ -15,6 +17,12 @@ namespace CustomerCrud.ViewModels
 
         public int CustomerTypeId { get; set; }
         public string? CustomerTypeName { get; set; }
+
+        [DataType(DataType.Upload)]
+        public IFormFile CustomerPhoto { get; set; }
+
+        [DataType(DataType.Upload)]
+        public IFormFile CustomerSignature { get; set; }
 
         public List<AddressViewModel> Addresses { get; set; } = new List<AddressViewModel>();
     }

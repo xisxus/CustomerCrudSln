@@ -24,7 +24,7 @@
         </div>
     </div>
 
-    <div class="row mb-3">
+    <div class="row mb-10">
         <div class="col-md-4">
             <div class="form-group">
                 <label>Customer Address</label>
@@ -46,19 +46,40 @@
         </div>
     </div>
 
+    <hr/>
+
     <!-- Delivery Addresses -->
     <div class="mb-4">
         <h4>Delivery Addresses</h4>
         @if (Model.Addresseslo != null && Model.Addresseslo.Any())
         {
-            <ul class="list-group">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>AddressName</th>
+                        <th>ContactPerson</th>
+                        <th>PhoneNumber</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var address in Model.Addresseslo)
+                    { 
+                        <tr>
+                            <td>@address.AddressName</td>
+                            <td>@address.ContactPerson</td>
+                            <td>@address.PhoneNumber</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+           @*  <ul class="list-group">
                 @foreach (var address in Model.Addresseslo)
                 {
                     <li class="list-group-item">
                         @address.AddressName
                     </li>
                 }
-            </ul>
+            </ul> *@
         }
         else
         {

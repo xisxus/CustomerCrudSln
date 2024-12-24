@@ -1,16 +1,30 @@
-﻿namespace CustomerCrud.ViewModels
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace CustomerCrud.ViewModels
 {
     public class CustomerListViewModel
     {
         public int CustomerId { get; set; }
         public string CustomerNo { get; set; }
         public string CustomerName { get; set; }
+
+        public string Email { get; set; }
+        public string PhoneNumber { get; set; }
         public string CustomerTypeName { get; set; }
         public DateTime? BusinessStart { get; set; }
         public string CustomerAddress { get; set; }
         public decimal? CreditLimit { get; set; }
         public int AdditionalAddressesCount { get; set; }
         public bool IsSelected { get; set; }
+
+        [DataType(DataType.Upload)]
+        public string CustomerPhotoLink { get; set; }
+
+        [DataType(DataType.Upload)]
+        public byte[] CustomerSignature { get; set; }
+
+        
+
         public List<AddressViewModel> Addresses { get; set; } = new List<AddressViewModel>();
     }
 
