@@ -14,12 +14,14 @@ namespace CustomerCrud.ViewModels
         public decimal CreditLimit { get; set; }
 
         public int CustomerTypeId { get; set; }
+        public string? CustomerTypeName { get; set; }
 
         public List<AddressViewModel> Addresses { get; set; } = new List<AddressViewModel>();
     }
 
     public class AddressViewModel
     {
+        public int? Id { get; set; }
         public string AddressName { get; set; }
         public string ContactPerson { get; set; }
         public string PhoneNumber { get; set; }

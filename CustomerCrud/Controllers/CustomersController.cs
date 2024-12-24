@@ -37,7 +37,7 @@ namespace CustomerCrud.Controllers
         }
 
 
-        public async Task<IActionResult> Index(int page = 1, int pageSize = 5, string sortField = "CustomerName", string sortOrder = "asc", string selectedIds = "")
+        public async Task<IActionResult> Index(int page = 1,  string sortField = "CustomerName", string sortOrder = "asc", string selectedIds = "")
         {
             // Parse the selected IDs (if any)
             var selectedCustomerIds = string.IsNullOrEmpty(selectedIds)
@@ -46,6 +46,8 @@ namespace CustomerCrud.Controllers
 
             // Retrieve the total customer count
             var totalCustomers = await _context.Customers.CountAsync();
+
+
 
             // Base query for customers
             var query = _context.Customers
@@ -83,13 +85,13 @@ namespace CustomerCrud.Controllers
 
             // Apply pagination
             var customers = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
+                //.Skip((page - 1) * pageSize)
+                //.Take(pageSize)
                 .ToListAsync();
 
             // Pagination details
-            var startIndex = (page - 1) * pageSize + 1;
-            var endIndex = Math.Min(page * pageSize, totalCustomers);
+            //var startIndex = (page - 1) * pageSize + 1;
+            //var endIndex = Math.Min(page * pageSize, totalCustomers);
 
             // Create the ViewModel
             var viewModel = new CustomerIndexViewModel
@@ -97,10 +99,10 @@ namespace CustomerCrud.Controllers
                 Customers = customers,
                 TotalCustomers = totalCustomers,
                 CurrentPage = page,
-                PageSize = pageSize,
-                TotalPages = (int)Math.Ceiling((double)totalCustomers / pageSize),
-                StartIndex = startIndex,
-                EndIndex = endIndex,
+               // PageSize = pageSize,
+               // TotalPages = (int)Math.Ceiling((double)totalCustomers / pageSize),
+                //StartIndex = startIndex,
+                //EndIndex = endIndex,
                 SortField = sortField,
                 SortOrder = sortOrder,
                 SelectedIds = selectedIds // Preserve selected IDs
@@ -792,69 +794,86 @@ namespace CustomerCrud.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CustomerCreateViewModel viewModel)
         {
-            if (viewModel.CustomerName == null || viewModel.CustomerAddress == null || viewModel.CustomerTypeId == 0)
+            try
             {
-                if (viewModel.CustomerName == null && viewModel.CustomerAddress == null && viewModel.CustomerTypeId == 0)
+                if (viewModel.CustomerName == null || viewModel.CustomerAddress == null || viewModel.CustomerTypeId == 0)
                 {
-                    return Json(new { success = false, message = "Enter Customer Name And Address And type" });
-                }
-                else if (viewModel.CustomerName == null)
-                {
-                    return Json(new { success = false, message = "Enter Customer Name" });
-                }
-                else if (viewModel.CustomerAddress == null)
-                {
-                    return Json(new { success = false, message = "Enter Delivery Address" });
-                }
-                else
-                {
-                    return Json(new { success = false, message = "Enter Customer Type" });
+                    if (viewModel.CustomerName == null && viewModel.CustomerAddress == null && viewModel.CustomerTypeId == 0)
+                    {
+                        return Json(new { success = false, message = "Enter Customer Name And Address And type" });
+                    }
+                    else if (viewModel.CustomerName == null)
+                    {
+                        return Json(new { success = false, message = "Enter Customer Name" });
+                    }
+                    else if (viewModel.CustomerAddress == null)
+                    {
+                        return Json(new { success = false, message = "Enter Delivery Address" });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = "Enter Customer Type" });
 
+                    }
                 }
+
+                List<AddressViewModel> addrss = new List<AddressViewModel>();
+
+                foreach (var item in viewModel.Addresses)
+                {
+
+                    if (item.AddressName == null || item.ContactPerson == null || item.PhoneNumber == null)
+                    {
+                        return Json(new { success = false, message = "Please Enter AddressName or ContactPerson or PhoneNumber" });
+                    }
+
+                        if (item.AddressName != null && item.ContactPerson != null && item.PhoneNumber != null)
+                    {
+                        addrss.Add(item);
+                    }
+                }
+
+                viewModel.Addresses = addrss;
+
+                //viewModel.Addresses = viewModel.Addresses
+                //    .Where(a => !string.IsNullOrWhiteSpace(a.AddressName))
+                //    .ToList();
+
+                //if (!ModelState.IsValid)
+                //{
+                //    ViewBag.CustomerTypes = new SelectList(_context.CustomerTypes,
+                //        "CustomerTypeId", "CustomerTypeName");
+                //    return View(viewModel);
+                //}
+
+                var customer = new Customers
+                {
+                    CustomerNo = GenerateCustomerNumber(),
+                    CustomerName = viewModel.CustomerName,
+                    CustomerAddress = viewModel.CustomerAddress,
+                    BusinessStart = viewModel.BusinessStart,
+                    CreditLimit = viewModel.CreditLimit,
+                    CustomerTypeId = viewModel.CustomerTypeId,
+                    AddressList = viewModel.Addresses.Select(a => new Address
+                    {
+                        ContactPerson = a.ContactPerson,
+                        PhoneNumber = a.PhoneNumber,
+                        AddressName = a.AddressName
+                    }).ToList()
+                };
+
+                _context.Customers.Add(customer);
+                await _context.SaveChangesAsync();
+
+                // Return success message
+                return Json(new { success = true, message = "Customer created successfully!" });
             }
-
-            List<AddressViewModel> addrss = new List<AddressViewModel>();
-
-            foreach (var item in viewModel.Addresses)
+            catch (Exception ex)
             {
-                if (item.AddressName != null)
-                {
-                    addrss.Add(item);
-                }
+
+                throw;
             }
-
-            viewModel.Addresses = addrss;
-
-            //viewModel.Addresses = viewModel.Addresses
-            //    .Where(a => !string.IsNullOrWhiteSpace(a.AddressName))
-            //    .ToList();
-
-            //if (!ModelState.IsValid)
-            //{
-            //    ViewBag.CustomerTypes = new SelectList(_context.CustomerTypes,
-            //        "CustomerTypeId", "CustomerTypeName");
-            //    return View(viewModel);
-            //}
-
-            var customer = new Customers
-            {
-                CustomerNo = GenerateCustomerNumber(),
-                CustomerName = viewModel.CustomerName,
-                CustomerAddress = viewModel.CustomerAddress,
-                BusinessStart = viewModel.BusinessStart,
-                CreditLimit = viewModel.CreditLimit,
-                CustomerTypeId = viewModel.CustomerTypeId,
-                AddressList = viewModel.Addresses.Select(a => new Address
-                {
-                    AddressName = a.AddressName
-                }).ToList()
-            };
-
-            _context.Customers.Add(customer);
-            await _context.SaveChangesAsync();
-
-            // Return success message
-            return Json(new { success = true, message = "Customer created successfully!" });
+           
         }
 
 
@@ -1016,6 +1035,7 @@ namespace CustomerCrud.Controllers
         {
             var customer = await _context.Customers
                 .Include(c => c.AddressList)
+                .Include(c=> c.CustomerType)
                 .FirstOrDefaultAsync(c => c.CustomersId == id);
 
             if (customer == null)
@@ -1025,6 +1045,9 @@ namespace CustomerCrud.Controllers
 
             ViewBag.CustomerTypes = new SelectList(_context.CustomerTypes,
                 "CustomerTypeId", "CustomerTypeName", customer.CustomerTypeId);
+            ViewBag.CustomerTypeNumber = GenerateCustomerTypeNumber();
+
+            ViewBag.CustomerTypeName = customer.CustomerType.CustomerTypeName;
 
             var viewModel = new CustomerCreateViewModel
             {
@@ -1034,8 +1057,14 @@ namespace CustomerCrud.Controllers
                 BusinessStart = customer.BusinessStart,
                 CreditLimit = customer.CreditLimit,
                 CustomerTypeId = customer.CustomerTypeId,
+                CustomerTypeName = customer.CustomerType.CustomerTypeName,
                 Addresses = customer.AddressList
-                    .Select(a => new AddressViewModel { AddressName = a.AddressName })
+                    .Select(a => new AddressViewModel 
+                    { 
+                        ContactPerson = a.ContactPerson,
+                        PhoneNumber = a.PhoneNumber,
+                        AddressName = a.AddressName 
+                    })
                     .ToList()
             };
 
@@ -1071,7 +1100,13 @@ namespace CustomerCrud.Controllers
 
             foreach (var item in viewModel.Addresses)
             {
-                if (item.AddressName != null)
+
+                if (item.AddressName == null || item.ContactPerson == null || item.PhoneNumber == null)
+                {
+                    return Json(new { success = false, message = "Please Enter AddressName or ContactPerson or PhoneNumber" });
+                }
+
+                if (item.AddressName != null && item.ContactPerson != null && item.PhoneNumber != null)
                 {
                     addrss.Add(item);
                 }
@@ -1116,7 +1151,12 @@ namespace CustomerCrud.Controllers
             customer.AddressList.Clear();
             foreach (var address in viewModel.Addresses)
             { 
-                customer.AddressList.Add(new Address { AddressName = address.AddressName });
+                customer.AddressList.Add(new Address 
+                {
+                    ContactPerson = address.ContactPerson,
+                    PhoneNumber = address.PhoneNumber,
+                    AddressName = address.AddressName 
+                });
             }
 
             // Save the changes to the database
@@ -1166,21 +1206,20 @@ namespace CustomerCrud.Controllers
                 return Json(new { success = false, message = "Customer or Address does not exist." });
             }
         }
-
-
-        [HttpPost]
+        [Route("Customers/Delete/{id}")]
         
         public IActionResult DeleteConfirmed(int id)
         {
             var customer = _context.Customers.FirstOrDefault(c => c.CustomersId == id);
             if (customer == null)
             {
-                return NotFound();
+                return Json(new { success = false, message = "Customer not found." });
             }
 
             _context.Customers.Remove(customer);
             _context.SaveChanges();
-            return RedirectToAction(nameof(Index));
+
+            return Json(new { success = true, message = "Customer deleted successfully." });
         }
 
 

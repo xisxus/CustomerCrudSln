@@ -51,7 +51,7 @@
                                 <li>@address.AddressName</li>  <!-- Display the address name -->
                             }
                         </ul>
-                     </td> 
+                     </td>
                     <td>
                         <a asp-action="Edit" asp-route-id="@customer.CustomerId" class="btn btn-sm btn-warning">
                             <i class="fas fa-edit"></i> Edit
@@ -59,7 +59,11 @@
                         <a asp-action="Details" asp-route-id="@customer.CustomerId" class="btn btn-sm btn-info">
                             <i class="fa fa-eye"></i> View
                         </a>
+                        <button class="btn btn-sm btn-danger delete-customer-btn" data-id="@customer.CustomerId">
+                            <i class="fa fa-trash"></i> Delete
+                        </button>
                     </td>
+
                 </tr>
             }
         </tbody>
@@ -92,11 +96,9 @@
 
 
 
-
 <script>
-        var $jq = jQuery.noConflict();
-    $jq(document).ready(function() {
-   
+    var $jq = jQuery.noConflict();
+    $jq(document).ready(function () {
         // Initialize DataTables
         $('#customersTable').DataTable({
             paging: true,       // Enables pagination
@@ -108,13 +110,46 @@
                 { orderable: false, targets: [0, 8] } // Disable sorting for checkboxes and actions column
             ]
         });
+
+        // Handle delete button click
+        $(document).on('click', '.delete-customer-btn', function () {
+            const customerId = $(this).data('id');
+
+            // Confirm the deletion action
+            if (!confirm('Are you sure you want to delete this customer?')) {
+                return;
+            }
+             debugger;
+            // Perform AJAX request to delete the customer
+            $.ajax({
+                url: `/Customers/Delete/${customerId}`, // Adjust to match your endpoint
+                type: 'DELETE', // HTTP DELETE method
+                success: function (response) {
+                    if (response.success) {
+                        alert('Customer deleted successfully!');
+                        // Optionally remove the row containing the button
+                        $(`button[data-id="${customerId}"]`).closest('tr').remove();
+                    } else {
+                        alert(response.message || 'Failed to delete the customer.');
+                    }
+                },
+
+                    error: function (xhr, status, error) {
+                        console.error('Error Details:', xhr.responseText);
+                        alert('An error occurred while trying to delete the customer.');
+                    }
+
+            });
+        });
     });
 
+    // Select/Deselect all checkboxes
     function toggleSelectAll(source) {
         const checkboxes = document.querySelectorAll('input[name="selectedCustomers"]');
         checkboxes.forEach(checkbox => checkbox.checked = source.checked);
     }
 
+    // Generate report based on selected customers
     function generateReport(reportType) {
         const selectedCustomerIds = Array.from(document.querySelectorAll('input[name="selectedCustomers"]:checked'))
             .map(cb => cb.value);
@@ -145,3 +180,4 @@
         form.submit();
     }
 </script>
+

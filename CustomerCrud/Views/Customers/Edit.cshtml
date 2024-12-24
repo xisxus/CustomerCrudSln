@@ -1,110 +1,123 @@
 ﻿@model CustomerCreateViewModel
 
-<div class="container mt-4">
-    <div class="card">
-        <div class="card-header">
-            <h2>Edit Customer</h2>
+<div class="container py-4">
+    <h2 class="text-center mb-4">Edit Customer</h2>
+    <form asp-action="Edit" method="post" id="customerForm">
+        <input type="hidden" asp-for="CustomersId" />
+
+        <!-- Validation Message -->
+        <div id="validationMessage" class="mt-2"></div>
+
+        <!-- First Row -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Customer Number</label>
+                    <input type="text" class="form-control" asp-for="CustomerNo" readonly />
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label asp-for="CustomerName">Customer Name</label>
+                    <input asp-for="CustomerName" class="form-control" id="CustomerName" />
+                    <span asp-validation-for="CustomerName" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label asp-for="CustomerTypeId">Customer Type</label>
+                    <div class="input-group">
+                        <input type="text" id="customerTypeSearch" class="form-control" placeholder="Search customer type..." value="@ViewBag.CustomerTypeName">
+                        <input type="hidden" asp-for="CustomerTypeId" id="CustomerTypeId">
+                        <button type="button" class="btn btn-outline-secondary" id="addCustomerTypeBtn">
+                            <i class="fa fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            <form asp-action="Edit" method="post" id="customerForm">
-                <input type="hidden" asp-for="CustomersId" />
 
-                <!-- First Row -->
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label>Customer Number</label>
-                        <input type="text" class="form-control" asp-for="CustomerNo" readonly />
+        <!-- Second Row -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label asp-for="CustomerAddress">Customer Address</label>
+                    <input asp-for="CustomerAddress" class="form-control" id="CustomerAddress" />
+                    <span asp-validation-for="CustomerAddress" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label asp-for="BusinessStart">Business Start</label>
+                    <input asp-for="BusinessStart" class="form-control" type="date" id="BusinessStart" />
+                    <span asp-validation-for="BusinessStart" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label asp-for="CreditLimit">Credit Limit</label>
+                    <input asp-for="CreditLimit" class="form-control" />
+                </div>
+            </div>
+        </div>
+
+        <hr />
+
+        <!-- Address List -->
+        <div id="addressContainer" class="mb-4">
+            <div class="row">
+                <div class="col-md-11">
+                    <h4 class="mb-3">Delivery Addresses</h4>
+                </div>
+                <div class="col-md-1">
+                    <div class="float-right">
+                        <button type="button" id="addAddressBtn" class="btn btn-secondary">
+                            <i class="fa fa-plus"></i>
+                        </button>
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <label asp-for="CustomerName">Customer Name</label>
-                        <input asp-for="CustomerName" class="form-control" />
-                        <span asp-validation-for="CustomerName" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label asp-for="CustomerTypeId">Customer Type</label>
+                </div>
+            </div>
 
-@* 
-                        <div class="input-group">
-                            <select asp-for="CustomerTypeId" asp-items="ViewBag.CustomerTypes" class="form-control">
-                                <option value="">Select Customer Type</option>
-                            </select>
-                            <button type="button" class="btn btn-outline-secondary ml-2" id="addCustomerTypeBtn">
-                                <i class="fa fa-plus">+</i>
-                            </button>
-                        </div> *@
-
-
-                        <div class="form-group">
-                            <label asp-for="CustomerTypeId">Customer Type</label>
-                            <div class="input-group">
-                                <input type="text" id="customerTypeSearch" class="form-control" placeholder="Search customer type...">
-                                <input type="hidden" asp-for="CustomerTypeId" id="CustomerTypeId">
-                                <button type="button" class="btn btn-outline-secondary" id="addCustomerTypeBtn">
-                                    <i class="fa fa-plus"></i>
-                                </button>
+            <div id="addressList">
+                @for (int i = 0; i < Model.Addresses.Count; i++)
+                {
+                    <div class="address-item mb-2">
+                        <input type="hidden" name="Addresses[@i].DeliveryAddressId" value="@Model.Addresses[i].Id" />
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <input type="text" name="Addresses[@i].AddressName" value="@Model.Addresses[i].AddressName" class="form-control" placeholder="Enter Address" />
+                                </div>
                             </div>
-                        </div>
-
-
-                    </div>
-                </div>
-
-                <!-- Second Row -->
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label asp-for="CustomerAddress">Customer Address</label>
-                        <input asp-for="CustomerAddress" class="form-control" />
-                        <span asp-validation-for="CustomerAddress" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="form-group">
-                            <label asp-for="BusinessStart">Business Start</label>
-                            <input asp-for="BusinessStart" class="form-control" type="date" />
-                            <span asp-validation-for="BusinessStart" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label asp-for="CreditLimit">Credit Limit</label>
-                        <input asp-for="CreditLimit" class="form-control" />
-                    </div>
-                </div>
-
-                <!-- Delivery Addresses -->
-                <div class="mt-4">
-                    <h4>Delivery Addresses</h4>
-                    <div id="addressList">
-                        @for (int i = 0; i < Model.Addresses.Count; i++)
-                        {
-                            <div class="address-item input-group mb-2">
-                                <input type="text"
-                                       name="Addresses[@i].AddressName"
-                                       value="@Model.Addresses[i].AddressName"
-                                       class="form-control"
-                                       placeholder="Enter Address" />
-                                <div class="input-group-append">
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <input type="text" name="Addresses[@i].ContactPerson" value="@Model.Addresses[i].ContactPerson" class="form-control" placeholder="Enter Contact Person" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <input type="text" name="Addresses[@i].PhoneNumber" value="@Model.Addresses[i].PhoneNumber" class="form-control" placeholder="Enter Phone Number" />
                                     <button type="button" class="btn btn-danger remove-address">
-                                        <i class="fa fa-trash">X</i>
+                                        <i class="fa fa-trash"></i>
                                     </button>
                                 </div>
                             </div>
-                        }
+                        </div>
                     </div>
-                    <button type="button" id="addAddressBtn" class="btn btn-secondary mt-2">
-                        <i class="fa fa-plus"></i> Add Address
-                    </button>
-                </div>
-
-                <!-- Submit Button -->
-                <div class="form-group mt-4">
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
-                </div>
-            </form>
+                }
+            </div>
         </div>
-    </div>
+
+        <!-- Submit -->
+        <div class="form-group text-center">
+            <button type="submit" class="btn btn-primary px-4">Update Customer</button>
+            <a asp-action="Index" class="btn btn-primary">
+                <i class="fa fa-plus"></i> Back To List
+            </a>
+        </div>
+    </form>
 
     <!-- Customer Type Modal -->
-
     <div class="modal fade" id="customerTypeModal" tabindex="-1" aria-labelledby="customerTypeModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
@@ -113,38 +126,37 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Add or Edit Customer Type -->
-                    @* <h6 id="formTitle">Create a New Customer Type</h6> *@
                     <div class="row">
-                        <div class="col-md-6 shadow p-4 bg-white rounded ">
+                        <div class="col-md-6 shadow p-4 bg-white rounded">
                             <div class="row mt-3">
                                 <div class="col-md-6">
                                     <h4>Customer Type</h4>
                                 </div>
                                 <div class="col-md-6">
-                                    @* <button type="button" class="btn btn-secondary btn-custom shadow-sm rounded" data-bs-dismiss="modal"><i class="fa fa-close">Close</i></button> *@
-                                    <button type="button" id="saveCustomerTypeBtn" class="btn btn-primary btn-custom shadow-sm rounded"><i class="fa fa-save"> Save</i></button>
-                                    <button type="button" id="updateCustomerTypeBtn" class="btn btn-success btn-custom shadow-sm rounded" style="display: none;"> <i class="fa fa-update">Update</i></button>
-
-                                    <button id="deleteCustomerTypeBtn" class="btn btn-danger" disabled><i class="fa fa-trash"> Delete</i></button>
-
-                                    <button type="button" id="clearCustomerTypeBtn" class="btn btn-primary btn-custom shadow-sm rounded"><i class="fa fa-clear">Clear</i></button>
-
+                                    <button type="button" id="saveCustomerTypeBtn" class="btn btn-primary btn-custom shadow-sm rounded">
+                                        <i class="fa fa-save"></i> Save
+                                    </button>
+                                    <button type="button" id="updateCustomerTypeBtn" class="btn btn-success btn-custom shadow-sm rounded" style="display: none;">
+                                        <i class="fa fa-update"></i> Update
+                                    </button>
+                                    <button id="deleteCustomerTypeBtn" class="btn btn-danger" disabled>
+                                        <i class="fa fa-trash"></i> Delete
+                                    </button>
+                                    <button type="button" id="clearCustomerTypeBtn" class="btn btn-primary btn-custom shadow-sm rounded">
+                                        <i class="fa fa-clear"></i> Clear
+                                    </button>
                                 </div>
-
                             </div>
-
 
                             <form id="customerTypeForm">
                                 <div class="row mt-3">
-                                    <input type="hidden" id="customerTypeId" /> <!-- Hidden field for ID -->
+                                    <input type="hidden" id="customerTypeId" />
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>CustomerType ID</label>
                                             <input type="text" class="form-control" value="@ViewBag.CustomerTypeNumber" readonly />
                                         </div>
                                     </div>
-
                                 </div>
                                 <div class="row mt-3">
                                     <div class="col-md-6">
@@ -161,15 +173,6 @@
                                     </div>
                                 </div>
                             </form>
-                            <div class="row mt-3">
-                                <div class="col-md-9">
-                                </div>
-                                <div class="col-md-3">
-                                    <button type="button" id="saveCustomerTypeBtn" class="btn btn-primary"><i class="fa fa-save"> Save</i></button>
-                                    <button type="button" id="updateCustomerTypeBtn" class="btn btn-success" style="display: none;"><i class="fa fa-update">Update</i></button>
-                                </div>
-
-                            </div>
                         </div>
                         <div class="col-md-6 shadow p-4 bg-white rounded">
                             <div class="table-responsive">
@@ -180,156 +183,31 @@
                                             <th>NO</th>
                                             <th>Name</th>
                                             <th>Short Name</th>
-                                            @* <th>Actions</th> *@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <!-- Data will be dynamically loaded via AJAX -->
                                     </tbody>
                                 </table>
                             </div>
-                            <div class="mt-3">
-                                @* <button id="deleteCustomerTypeBtn" class="btn btn-danger" disabled><i class="fa fa-trash">Delete Selected</i></button> *@
-                            </div>
                         </div>
                     </div>
-
-
-                    <hr />
-                    <!-- Table for displaying customer types -->
-
-
-
-
                 </div>
             </div>
         </div>
     </div>
-
 </div>
-
-@* @section Scripts {
-    <script>
-        $(document).ready(function () {
-            let addressCounter = @Model.Addresses.Count;
-
-            // Function to check if customer or address exists (optional, you can keep or modify based on your needs)
-            function checkCustomerAndAddress() {
-                const customerName = $('#CustomerName').val();
-                const customerAddress = $('#CustomerAddress').val();
-
-                $.ajax({
-                    url: '@Url.Action("ExistCustomerAndAddress", "Customers")',
-                    type: 'GET',
-                    data: { customerName: customerName, customerAddress: customerAddress },
-                    success: function (response) {
-                        if (response.success) {
-                            $('#validationMessage').removeClass('text-danger').addClass('text-success');
-                            $('#validationMessage').text(response.message);
-                        } else {
-                            $('#validationMessage').text('');
-                        }
-                    },
-                    error: function () {
-                        alert('Error while checking customer or address.');
-                    }
-                });
-            }
-
-            // Call the function whenever the customer name or address changes
-            $('#CustomerName, #CustomerAddress').on('input', function () {
-                checkCustomerAndAddress();
-            });
-
-            // Add address dynamically
-            $('#addAddressBtn').click(function () {
-                const addressHtml = `
-                    <div class="address-item mb-2">
-                        <div class="input-group">
-                            <input type="text"
-                                   name="Addresses[${addressCounter}].AddressName"
-                                   class="form-control"
-                                   placeholder="Enter Address" />
-                            <div class="input-group-append">
-                                <button type="button" class="btn btn-danger remove-address">
-                                    <i class="fa fa-trash">X</i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>`;
-                $('#addressList').append(addressHtml);
-                addressCounter++;
-            });
-
-            // Remove address dynamically
-            $(document).on('click', '.remove-address', function () {
-                $(this).closest('.address-item').remove();
-            });
-
-            // Show Customer Type Modal
-            $('#addCustomerTypeBtn').click(function () {
-                $('#customerTypeModal').modal('show');
-            });
-
-            // Save new Customer Type
-            $('#saveCustomerTypeBtn').click(function () {
-                const typeName = $('#newCustomerTypeName').val();
-
-                $.ajax({
-                    url: '@Url.Action("CreateCustomerType", "Customers")',
-                    type: 'POST',
-                    data: { customerTypeName: typeName },
-                    success: function (response) {
-                        if (response.success) {
-                            $('#CustomerTypeId').append(
-                                `<option value="${response.customerTypeId}">${response.customerTypeName}</option>`
-                            );
-                            $('#CustomerTypeId').val(response.customerTypeId);
-                            $('#customerTypeModal').modal('hide');
-                            $('#newCustomerTypeName').val('');
-                        } else {
-                            alert(response.message);
-                        }
-                    },
-                    error: function () {
-                        alert('Error creating customer type.');
-                    }
-                });
-            });
-
-            // Handle form submission with validation message display
-            $('#customerForm').submit(function (event) {
-                event.preventDefault();  // Prevent form from submitting normally
-
-                $.ajax({
-                    url: '@Url.Action("Edit", "Customers")',
-                    type: 'POST',
-                    data: $(this).serialize(),
-                    success: function (response) {
-                        if (response.success) {
-                            $('#validationMessage').removeClass('text-danger').addClass('text-success');
-                            $('#validationMessage').text(response.message);
-                        } else {
-                            $('#validationMessage').removeClass('text-success').addClass('text-danger');
-                            $('#validationMessage').text(response.message);
-                        }
-                    },
-                    error: function () {
-                        alert('Error while submitting the form.');
-                    }
-                });
-            });
-        });
-    </script>
-} *@
-
 
 @section Scripts {
     <script>
         $(document).ready(function () {
+            // Initialize BusinessStart date if empty
+            if (!document.getElementById('BusinessStart').value) {
+                document.getElementById('BusinessStart').value = new Date().toISOString().split('T')[0];
+            }
+
             let addressCounter = @Model.Addresses.Count;
 
-            // Function to check if customer or address exists (optional, you can keep or modify based on your needs)
+            // Function to check if customer or address exists
             function checkCustomerAndAddress() {
                 const customerName = $('#CustomerName').val();
                 const customerAddress = $('#CustomerAddress').val();
@@ -357,19 +235,35 @@
                 checkCustomerAndAddress();
             });
 
-            // Add address dynamically
-            $('#addAddressBtn').click(function () {
+            // Initial rendering fix for existing addresses
+            $('.address-item').each(function (index) {
+                $(this).find('input[name$=".AddressName"]').attr('name', `Addresses[${index}].AddressName`);
+                $(this).find('input[name$=".ContactPerson"]').attr('name', `Addresses[${index}].ContactPerson`);
+                $(this).find('input[name$=".PhoneNumber"]').attr('name', `Addresses[${index}].PhoneNumber`);
+            });
+
+            // Add new address
+            $('#addAddressBtn, .add-address').click(function () {
                 const addressHtml = `
                     <div class="address-item mb-2">
-                        <div class="input-group">
-                            <input type="text"
-                                   name="Addresses[${addressCounter}].AddressName"
-                                   class="form-control"
-                                   placeholder="Enter Address" />
-                            <div class="input-group-append">
-                                <button type="button" class="btn btn-danger remove-address">
-                                    <i class="fa fa-trash">X</i>
-                                </button>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <input type="text" name="Addresses[${addressCounter}].AddressName" class="form-control" placeholder="Enter Address" required />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <input type="text" name="Addresses[${addressCounter}].ContactPerson" class="form-control" placeholder="Enter Contact Person" required />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <input type="text" name="Addresses[${addressCounter}].PhoneNumber" class="form-control" placeholder="Enter Phone Number" required />
+                                    <button type="button" class="btn btn-danger remove-address" title="Remove Address">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>`;
@@ -377,279 +271,270 @@
                 addressCounter++;
             });
 
-            // Remove address dynamically
+            // Remove address and reindex
             $(document).on('click', '.remove-address', function () {
                 $(this).closest('.address-item').remove();
+                reindexAddresses();
             });
 
+            // Reindex addresses
+            function reindexAddresses() {
+                $('.address-item').each(function (index) {
+                    $(this).find('input').each(function () {
+                        const oldName = $(this).attr('name');
+                        const newName = oldName.replace(/\[\d+\]/, `[${index}]`);
+                        $(this).attr('name', newName);
+                    });
+                });
+            }
 
-            //-------------------------------------------------
+            // Form submission
+            $('#customerForm').submit(function (event) {
+                event.preventDefault();
 
-                     $("#customerTypeSearch").autocomplete({
-            minLength: 0, // Show all options on empty input
-            source: function(request, response) {
+                // Reindex before submission
+                reindexAddresses();
+
+                const formData = new FormData(this);
+
+                $.ajax({
+                    url: '@Url.Action("Edit", "Customers")',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        if (response.success) {
+                            window.location.href = '@Url.Action("Index", "Customers")';
+                        } else {
+                            $('#validationMessage')
+                                .removeClass('text-success')
+                                .addClass('text-danger')
+                                .text(response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('Error while updating the customer.');
+                    }
+                });
+            });
+
+            // Customer Type Search Autocomplete
+            $("#customerTypeSearch").autocomplete({
+                minLength: 0,
+                source: function(request, response) {
+                    $.ajax({
+                        url: '@Url.Action("GetCustomerTypes", "Customers")',
+                        type: 'GET',
+                        success: function(data) {
+                            var transformedData = data.map(function(item) {
+                                return {
+                                    label: item.customerTypeName,
+                                    value: item.customerTypeName,
+                                    id: item.customerTypeId
+                                };
+                            });
+
+                            var filtered = transformedData;
+                            if (request.term) {
+                                filtered = transformedData.filter(function(item) {
+                                    return item.label.toLowerCase().includes(request.term.toLowerCase());
+                                });
+                            }
+
+                            response(filtered);
+                        }
+                    });
+                },
+                select: function(event, ui) {
+                    $("#CustomerTypeId").val(ui.item.id);
+                },
+                change: function(event, ui) {
+                    if (!ui.item) {
+                        $(this).val("");
+                        $("#CustomerTypeId").val("");
+                    }
+                }
+            }).focus(function() {
+                $(this).autocomplete("search", "");
+            });
+
+            // Add dropdown arrow
+            $("#customerTypeSearch").after('<span class="input-group-text dropdown-toggle" style="cursor: pointer;"><i class="fa fa-chevron-down"></i></span>');
+            $(".dropdown-toggle").click(function() {
+                $("#customerTypeSearch").focus();
+            });
+
+            // Initialize DataTable for customer types
+            let customerTypeTable = $('#customerTypeTable').DataTable({
+                autoWidth: false,
+                columnDefs: [
+                    { targets: 0, width: '10px' },
+                    { targets: 1, width: '20px' },
+                    { targets: 2, width: '200px' },
+                    { targets: 3, width: '120px' }
+                ]
+            });
+
+            // Customer Type Modal functionality
+            $('#addCustomerTypeBtn').click(function () {
+                $('#customerTypeModal').modal('show');
+                $('#formTitle').text('Create a New Customer Type');
+                $('#saveCustomerTypeBtn').show();
+                $('#updateCustomerTypeBtn').hide();
+
+                $('#customerTypeForm')[0].reset();
+                $('#customerTypeId').val('');
+
                 $.ajax({
                     url: '@Url.Action("GetCustomerTypes", "Customers")',
                     type: 'GET',
-                    success: function(data) {
-                        var transformedData = data.map(function(item) {
-                            return {
-                                label: item.customerTypeName,
-                                value: item.customerTypeName,
-                                id: item.customerTypeId
-                            };
+                    success: function (data) {
+                        customerTypeTable.clear();
+                        data.forEach(function (type) {
+                            customerTypeTable.row.add([
+                                `<input type="checkbox" class="mark-customer-type" data-id="${type.customerTypeId}" />`,
+                                type.customerTypeNo,
+                                `<button class="btn btn-link edit-customer-type" data-id="${type.customerTypeId}" data-name="${type.customerTypeName}" data-short-name="${type.shortName}">${type.customerTypeName}</button>`,
+                                type.shortName || '-'
+                            ]).draw();
                         });
-
-                        // Filter based on search term
-                        var filtered = transformedData;
-                        if (request.term) {
-                            filtered = transformedData.filter(function(item) {
-                                return item.label.toLowerCase().includes(request.term.toLowerCase());
-                            });
-                        }
-
-                        response(filtered);
+                    },
+                    error: function () {
+                        alert('Error fetching customer types.');
                     }
                 });
-            },
-            select: function(event, ui) {
-                $("#CustomerTypeId").val(ui.item.id);
-            },
-            change: function(event, ui) {
-                if (!ui.item) {
-                    $(this).val("");
-                    $("#CustomerTypeId").val("");
-                }
-            }
-        }).focus(function() {
-            // Show all options when input is focused
-            $(this).autocomplete("search", "");
-        });
-
-        // Add dropdown arrow and functionality
-        $("#customerTypeSearch").after('<span class="input-group-text dropdown-toggle" style="cursor: pointer;"><i class="fa fa-chevron-down"></i></span>');
-
-        $(".dropdown-toggle").click(function() {
-            $("#customerTypeSearch").focus();
-        });
-
-            //----------------------------------------------
-
-
-             // Open the modal and load customer types
-                 let customerTypeTable = $('#customerTypeTable').DataTable();
-
-        // Open modal and load customer types
-        $('#addCustomerTypeBtn').click(function () {
-            $('#customerTypeModal').modal('show');
-            $('#formTitle').text('Create a New Customer Type');
-            $('#saveCustomerTypeBtn').show();
-            $('#updateCustomerTypeBtn').hide();
-
-            // Clear the form
-            $('#customerTypeForm')[0].reset();
-            $('#customerTypeId').val('');
-
-            // Fetch customer types via AJAX
-            $.ajax({
-                url: '@Url.Action("GetCustomerTypes", "Customers")',
-                type: 'GET',
-                success: function (data) {
-                    // Clear the DataTable
-                    customerTypeTable.clear();
-
-                    // Add rows to the DataTable
-                    data.forEach(function (type) {
-                        customerTypeTable.row.add([
-                            `<input type="checkbox" class="mark-customer-type" data-id="${type.customerTypeId}" />`, // Mark checkbox
-                            type.customerTypeNo, // ID
-                            `<button class="btn btn-link edit-customer-type" data-id="${type.customerTypeId}" data-name="${type.customerTypeName}" data-short-name="${type.shortName}">${type.customerTypeName}</button>`,
-              // type.customerTypeName, // Name
-                            type.shortName || '-', // Short Name
-              // `<button class="btn btn-link edit-customer-type" data-id="${type.customerTypeId}" data-name="${type.customerTypeName}" data-short-name="${type.shortName}">Edit</button>`
-                        ]).draw();
-                    });
-                },
-                error: function () {
-                    alert('Error fetching customer types.');
-                }
             });
-        });
 
-        // Save new customer type
-               $('#saveCustomerTypeBtn').click(function () {
-            const newTypeName = $('#customerTypeName').val().trim();
-            const newShortName = $('#customerTypeShortName').val().trim();
+            // Save new customer type
+            $('#saveCustomerTypeBtn').click(function () {
+                const newTypeName = $('#customerTypeName').val().trim();
+                const newShortName = $('#customerTypeShortName').val().trim();
 
-            if (!newTypeName) {
-                alert('Please enter a Customer Type Name.');
-                return;
-            }
+                if (!newTypeName) {
+                    alert('Please enter a Customer Type Name.');
+                    return;
+                }
 
-            $.ajax({
-                url: '@Url.Action("CreateCustomerType", "Customers")',
-                type: 'POST',
-                data: { customerTypeName: newTypeName, shortName: newShortName },
-                success: function (response) {
-                    if (response.success) {
-                        // Update the hidden input with the new ID
-                        $('#CustomerTypeId').val(response.customerTypeId);
-
-                        // Update the autocomplete input with the new name
-                        $('#customerTypeSearch').val(newTypeName);
-
-                        // Clear the form and close the modal
-                        $('#customerTypeForm')[0].reset();
-                        $('#customerTypeModal').modal('hide');
-
-                        // Refresh the customer types table
-                        $('#addCustomerTypeBtn').click();
-
-                        // Show success message
-                        $('#validationMessage')
-                            .removeClass('text-danger')
-                            .addClass('text-success')
-                            .text('Customer type created successfully');
-                    } else {
+                $.ajax({
+                    url: '@Url.Action("CreateCustomerType", "Customers")',
+                    type: 'POST',
+                    data: { customerTypeName: newTypeName, shortName: newShortName },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#CustomerTypeId').val(response.customerTypeId);
+                            $('#customerTypeSearch').val(newTypeName);
+                            $('#customerTypeForm')[0].reset();
+                            $('#customerTypeModal').modal('hide');
+                            $('#addCustomerTypeBtn').click();
+                            $('#validationMessage')
+                                .removeClass('text-danger')
+                                .addClass('text-success')
+                                .text('Customer type created successfully');
+                        } else {
+                            alert('Error creating new customer type.');
+                        }
+                    },
+                    error: function () {
                         alert('Error creating new customer type.');
                     }
-                },
-                error: function () {
-                    alert('Error creating new customer type.');
-                }
+                });
             });
-        });
 
-        // Add clear button functionality
-        $('#clearCustomerTypeBtn').click(function() {
-            $('#customerTypeForm')[0].reset();
-            $('#customerTypeId').val('');
-        });
+            // Clear customer type form
+            $('#clearCustomerTypeBtn').click(function() {
+                $('#customerTypeForm')[0].reset();
+                $('#customerTypeId').val('');
+            });
 
-        // Populate form for editing a customer type
-        $('#customerTypeTable').on('click', '.edit-customer-type', function () {
-            const customerTypeId = $(this).data('id');
-            const customerTypeName = $(this).data('name');
-            const shortName = $(this).data('short-name');
+            // Edit customer type
+            $('#customerTypeTable').on('click', '.edit-customer-type', function () {
+                const customerTypeId = $(this).data('id');
+                const customerTypeName = $(this).data('name');
+                const shortName = $(this).data('short-name');
 
-            // Populate the form with the selected customer type's data
-            $('#customerTypeId').val(customerTypeId);
-            $('#customerTypeName').val(customerTypeName);
-            $('#customerTypeShortName').val(shortName || '');
+                $('#customerTypeId').val(customerTypeId);
+                $('#customerTypeName').val(customerTypeName);
+                $('#customerTypeShortName').val(shortName || '');
 
-            // Show the update button and hide the save button
-            $('#formTitle').text('Edit Customer Type');
-            $('#saveCustomerTypeBtn').hide();
-            $('#updateCustomerTypeBtn').show();
+                $('#formTitle').text('Edit Customer Type');
+                $('#saveCustomerTypeBtn').hide();
+                $('#updateCustomerTypeBtn').show();
 
-            // Open the modal
-            $('#customerTypeModal').modal('show');
-        });
+                $('#customerTypeModal').modal('show');
+            });
 
-        // Update customer type
-        $('#updateCustomerTypeBtn').click(function () {
-            const customerTypeId = $('#customerTypeId').val();
-            const updatedTypeName = $('#customerTypeName').val().trim();
-            const updatedShortName = $('#customerTypeShortName').val().trim();
+            // Update customer type
+            $('#updateCustomerTypeBtn').click(function () {
+                const customerTypeId = $('#customerTypeId').val();
+                const updatedTypeName = $('#customerTypeName').val().trim();
+                const updatedShortName = $('#customerTypeShortName').val().trim();
 
-            if (!updatedTypeName) {
-                alert('Please enter a Customer Type Name.');
-                return;
-            }
+                if (!updatedTypeName) {
+                    alert('Please enter a Customer Type Name.');
+                    return;
+                }
 
-            $.ajax({
-                url: '@Url.Action("UpdateCustomerType", "Customers")',
-                type: 'POST',
-                data: {
-                    customerTypeId: customerTypeId,
-                    customerTypeName: updatedTypeName,
-                    shortName: updatedShortName
-                },
-                success: function (response) {
-                    if (response.success) {
-                        $('#customerTypeForm')[0].reset();
-                        $('#customerTypeModal').modal('hide');
-                        $('#addCustomerTypeBtn').click();
-                    } else {
+                $.ajax({
+                    url: '@Url.Action("UpdateCustomerType", "Customers")',
+                    type: 'POST',
+                    data: {
+                        customerTypeId: customerTypeId,
+                        customerTypeName: updatedTypeName,
+                        shortName: updatedShortName
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#customerTypeForm')[0].reset();
+                            $('#customerTypeModal').modal('hide');
+                            $('#addCustomerTypeBtn').click();
+                        } else {
+                            alert('Error updating customer type.');
+                        }
+                    },
+                    error: function () {
                         alert('Error updating customer type.');
                     }
-                },
-                error: function () {
-                    alert('Error updating customer type.');
-                }
+                });
             });
-        });
 
-        // Enable/disable delete button based on marked checkboxes
-        $('#customerTypeTable').on('change', '.mark-customer-type', function () {
-            const markedCount = $('.mark-customer-type:checked').length;
-            $('#deleteCustomerTypeBtn').prop('disabled', markedCount === 0);
-        });
+            // Toggle delete button based on selections
+            $('#customerTypeTable').on('change', '.mark-customer-type', function () {
+                const markedCount = $('.mark-customer-type:checked').length;
+                $('#deleteCustomerTypeBtn').prop('disabled', markedCount === 0);
+            });
 
-        // Delete selected customer types
-        $('#deleteCustomerTypeBtn').click(function () {
-            const markedIds = $('.mark-customer-type:checked').map(function () {
-                return $(this).data('id');
-            }).get();
+            // Delete selected customer types
+            $('#deleteCustomerTypeBtn').click(function () {
+                const markedIds = $('.mark-customer-type:checked').map(function () {
+                    return $(this).data('id');
+                }).get();
 
-            if (markedIds.length === 0) {
-                alert('No customer types selected.');
-                return;
-            }
+                if (markedIds.length === 0) {
+                    alert('No customer types selected.');
+                    return;
+                }
 
-            if (!confirm('Are you sure you want to delete the selected customer types?')) {
-                return;
-            }
+                if (!confirm('Are you sure you want to delete the selected customer types?')) {
+                    return;
+                }
 
-            $.ajax({
-                url: '@Url.Action("DeleteCustomerTypes", "Customers")',
-                type: 'POST',
-                data: { customerTypeIds: markedIds },
-                success: function (response) {
-                    if (response.success) {
-                        $('#addCustomerTypeBtn').click();
-                    } else {
+                $.ajax({
+                    url: '@Url.Action("DeleteCustomerTypes", "Customers")',
+                    type: 'POST',
+                    data: { customerTypeIds: markedIds },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#addCustomerTypeBtn').click();
+                        } else {
+                            alert('Error deleting customer types.');
+                        }
+                    },
+                    error: function () {
                         alert('Error deleting customer types.');
                     }
-                },
-                error: function () {
-                    alert('Error deleting customer types.');
-                }
+                });
             });
-        });
-
-
-
-        //--------------------------------------------------------------
-
-
-
-
-            // Handle form submission with AJAX and redirect on success
-                    $('#customerForm').submit(function (event) {
-            event.preventDefault();  // Prevent form from submitting normally
-
-            $.ajax({
-                url: '@Url.Action("Edit", "Customers")',  // Ensure you use the correct controller action
-                type: 'POST',
-                data: $(this).serialize(),
-                success: function (response) {
-                    if (response.success) {
-                        // Success: Redirect to the Index page
-                        window.location.href = '@Url.Action("Index", "Customers")';  // Adjust controller name if needed
-                    } else {
-                        // Failure: Show validation error message
-                        $('#validationMessage').removeClass('text-success').addClass('text-danger');
-                        $('#validationMessage').text(response.message);
-                    }
-                },
-                error: function () {
-                    alert('Error while submitting the form.');
-                }
-            });
-        });
-
         });
     </script>
 }
-
