@@ -27,5 +27,7 @@ namespace CustomerCrud.Models
         public decimal CreditLimit { get; set; }
         public ICollection<Address> AddressList { get; set; }
         public virtual CustomerType? CustomerType { get; set; }
+        [NotMapped]
+        public string? SignatureBase64 { get; internal set; }
     }
 }

@@ -3,7 +3,7 @@
 
 <div class="container">
     <div class="row">
-        <div class="col-md-6">  <a asp-area="" asp-controller="Customers" asp-action="Create" class="btn btn-primary">CreateCustomers</a> </div>
+        <div class="col-md-6">  <a asp-area="" asp-controller="Customers" asp-action="Create" class="btn btn-primary">Create New Customers</a> </div>
         <div class="col-md-6"> <h2>Customers List</h2></div>
 
     </div>
@@ -15,17 +15,21 @@
                 <th>
                     <input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)" />
                 </th>
-                <th>Customer No</th>
-                <th>Customer Name</th>
-                <th>Customer Type</th>
-                <th>Customer Email</th>
-                <th>Phone Number</th>
+                <th width="1px">Customer ID</th>
+                <th>Customer</th>
                 <th>Customer Address</th>
+
+                <th>Customer Type</th>
                 <th>Business Start</th>
+                <th>Phone Number</th>
+
+
+                @* <th>Customer Email</th> *@
                 <th>Credit Limit</th>
+                <th>Delivery Addresses</th>
+
                 <th>Photo</th>
                 <th>Signature</th>
-                <th>Delivery Addresses</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -36,19 +40,32 @@
                     <td>
                         <input type="checkbox" name="selectedCustomers" value="@customer.CustomerId" @(customer.IsSelected ? "checked" : "") />
                     </td>
-                    <td>
+                    <td width="1px">
                         <a asp-action="Edit" asp-route-id="@customer.CustomerId" class="btn btn-sm btn-link">
                             @customer.CustomerNo
                         </a>
                        
                     </td>
                     <td>@customer.CustomerName</td>
-                    <td>@customer.CustomerTypeName</td>
-                    <td>@customer.Email</td>
-                    <td>@customer.PhoneNumber</td>
                     <td>@customer.CustomerAddress</td>
+
+                    <td>@customer.CustomerTypeName</td>
                     <td>@customer.BusinessStart?.ToString("dd-MM-yyyy")</td>
+                    <td>@customer.PhoneNumber</td>
+
+
+                    @* <td>@customer.Email</td> *@
                     <td>@customer.CreditLimit?.ToString("C")</td>
+                    <td>
+                        <ul>
+                            @foreach (var address in customer.Addresses)
+                            {
+                                <li>@address.AddressName</li>  <!-- Display the address name -->
+                            }
+                        </ul>
+                    </td>
+
+
                     <td><img src="@customer.CustomerPhotoLink" alt="CustomerPhoto" height="100" width="100" /></td>
                     <td>
                         @if (!string.IsNullOrEmpty(customer.CustomerSignatureUrl))
@@ -66,14 +83,7 @@
                     
 
 
-                     <td>
-                        <ul>
-                            @foreach (var address in customer.Addresses)
-                            {
-                                <li>@address.AddressName</li>  <!-- Display the address name -->
-                            }
-                        </ul>
-                     </td>
+                    
                     <td>
                        @*  <a asp-action="Edit" asp-route-id="@customer.CustomerId" class="btn btn-sm btn-warning">
                             <i class="fas fa-edit"></i> Edit

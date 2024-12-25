@@ -3,83 +3,107 @@
 <div class="container py-4">
     <h2 class="text-center mb-4">Customer Details</h2>
 
+    <!-- Customer Details Section -->
     <div class="row mb-3">
         <div class="col-md-4">
-            <div class="form-group">
+            <div class="form-group shadow p-4 bg-white rounded">
                 <label>Customer Number</label>
                 <input type="text" class="form-control" value="@Model.CustomerNo" readonly />
             </div>
         </div>
         <div class="col-md-4">
-            <div class="form-group">
+            <div class="form-group shadow p-4 bg-white rounded">
                 <label>Customer Name</label>
                 <input type="text" class="form-control" value="@Model.CustomerName" readonly />
             </div>
         </div>
         <div class="col-md-4">
-            <div class="form-group">
+            <div class="form-group shadow p-4 bg-white rounded">
                 <label>Customer Type</label>
                 <input type="text" class="form-control" value="@Model.CustomerTypeName" readonly />
             </div>
         </div>
     </div>
 
-    <div class="row mb-10">
+    <!-- Additional Customer Details Section -->
+    <div class="row mb-3">
         <div class="col-md-4">
-            <div class="form-group">
+            <div class="form-group shadow p-4 bg-white rounded">
                 <label>Customer Address</label>
                 <input type="text" class="form-control" value="@Model.CustomerAddress" readonly />
             </div>
         </div>
         <div class="col-md-4">
-            <div class="form-group">
-                <label asp-for="BusinessStart">BusinessStart</label>
-                <input asp-for="BusinessStart" class="form-control" type="date" />
-                <span asp-validation-for="BusinessStart" class="text-danger"></span>
+            <div class="form-group shadow p-4 bg-white rounded">
+                <label>Business Start</label>
+                <input type="text" class="form-control" value="@Model.BusinessStart?.ToString("yyyy-MM-dd")" readonly />
             </div>
         </div>
         <div class="col-md-4">
-            <div class="form-group">
+            <div class="form-group shadow p-4 bg-white rounded">
                 <label>Credit Limit</label>
                 <input type="text" class="form-control" value="@Model.CreditLimit" readonly />
             </div>
         </div>
     </div>
 
-    <hr/>
+    <!-- New Details: Email, Phone, and Photo -->
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <div class="form-group shadow p-4 bg-white rounded">
+                <label>Email</label>
+                <input type="email" class="form-control" value="@Model.Email" readonly />
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group shadow p-4 bg-white rounded">
+                <label>Phone</label>
+                <input type="text" class="form-control" value="@Model.PhoneNumber" readonly />
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group shadow p-4 bg-white rounded">
+                <label>Photo</label>
+                @if (!string.IsNullOrEmpty(Model.CustomerPhotoLink))
+                {
+                    <img src="@Model.CustomerPhotoLink" alt="Customer Photo" class="img-fluid rounded" style="max-height: 150px; object-fit: cover;" />
+                }
+                else
+                {
+                    <p>No photo available</p>
+                }
+            </div>
+        </div>
+    </div>
 
-    <!-- Delivery Addresses -->
+    <hr />
+
+    <!-- Delivery Addresses Section -->
     <div class="mb-4">
         <h4>Delivery Addresses</h4>
         @if (Model.Addresseslo != null && Model.Addresseslo.Any())
         {
-            <table class="table table-bordered table-striped">
-                <thead>
-                    <tr>
-                        <th>AddressName</th>
-                        <th>ContactPerson</th>
-                        <th>PhoneNumber</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var address in Model.Addresseslo)
-                    { 
+            <div class="shadow p-4 bg-white rounded">
+                <table class="table table-bordered table-striped">
+                    <thead>
                         <tr>
-                            <td>@address.AddressName</td>
-                            <td>@address.ContactPerson</td>
-                            <td>@address.PhoneNumber</td>
+                            <th>Address Name</th>
+                            <th>Contact Person</th>
+                            <th>Phone Number</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
-           @*  <ul class="list-group">
-                @foreach (var address in Model.Addresseslo)
-                {
-                    <li class="list-group-item">
-                        @address.AddressName
-                    </li>
-                }
-            </ul> *@
+                    </thead>
+                    <tbody>
+                        @foreach (var address in Model.Addresseslo)
+                        {
+                            <tr>
+                                <td>@address.AddressName</td>
+                                <td>@address.ContactPerson</td>
+                                <td>@address.PhoneNumber</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         }
         else
         {

@@ -14,7 +14,11 @@ namespace CustomerCrud.ViewModels
         public CustomerType CustomerType { get; set; }
         public List<Address> Addresses { get; set; }
         public List<AddressViewModel> Addresseslo { get; set; }
-        
+        public string Email { get;  set; }
+        public string PhoneNumber { get;  set; }
+        public string CustomerPhotoLink { get;  set; }
+        public byte[] CustomerSignatureShow { get;  set; }
+        public string? CustomerSignatureLink { get;  set; }
     }
 
  

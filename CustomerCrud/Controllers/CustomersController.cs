@@ -23,6 +23,10 @@ using System.Drawing;  // For image dimension validation
 using System.IO;
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
+using DocumentFormat.OpenXml.Bibliography;
+using Microsoft.AspNetCore.Hosting;
+using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Office.Drawing;
 
 
 
@@ -298,20 +302,19 @@ namespace CustomerCrud.Controllers
 
         private byte[] GeneratePdfUsingQuestPDF(List<Customers> customers)
         {
-
             try
             {
                 var document = QuestPDF.Fluent.Document.Create(container =>
                 {
                     container.Page(page =>
                     {
-                        page.Size(8.27f, 11.69f, Unit.Inch);
+                        page.Size(11.69f, 8.27f, Unit.Inch);
                         page.Margin(1, Unit.Inch);
                         page.Header().Text("Customer Report").Bold().FontSize(20).AlignCenter();
 
                         page.Content().Table(table =>
                         {
-                            // Define columns
+                            // Define columns (added 2 more for photo and signature)
                             table.ColumnsDefinition(columns =>
                             {
                                 columns.RelativeColumn();
@@ -320,15 +323,20 @@ namespace CustomerCrud.Controllers
                                 columns.RelativeColumn();
                                 columns.RelativeColumn();
                                 columns.RelativeColumn();
+                                columns.RelativeColumn();
+                                columns.RelativeColumn();
+                                columns.RelativeColumn(); // Photo
+                                columns.RelativeColumn(); // Signature
                             });
 
-                            // Add Headers
+                            // Add Headers (including new columns)
                             table.Header(header =>
                             {
+                                // Previous headers remain the same
                                 header.Cell()
                                     .Border(1).BorderColor(Colors.Black)
-                                    .Padding(5) // Add padding to the header
-                                    .AlignCenter() // Center-align the text
+                                    .Padding(5)
+                                    .AlignCenter()
                                     .Text("Customer ID").Bold();
 
                                 header.Cell()
@@ -347,6 +355,18 @@ namespace CustomerCrud.Controllers
                                     .Border(1).BorderColor(Colors.Black)
                                     .Padding(5)
                                     .AlignCenter()
+                                    .Text("Email").Bold();
+
+                                header.Cell()
+                                    .Border(1).BorderColor(Colors.Black)
+                                    .Padding(5)
+                                    .AlignCenter()
+                                    .Text("Phone").Bold();
+
+                                header.Cell()
+                                    .Border(1).BorderColor(Colors.Black)
+                                    .Padding(5)
+                                    .AlignCenter()
                                     .Text("Address").Bold();
 
                                 header.Cell()
@@ -360,15 +380,29 @@ namespace CustomerCrud.Controllers
                                     .Padding(5)
                                     .AlignCenter()
                                     .Text("Credit Limit").Bold();
+
+                                // New headers for photo and signature
+                                header.Cell()
+                                    .Border(1).BorderColor(Colors.Black)
+                                    .Padding(5)
+                                    .AlignCenter()
+                                    .Text("Photo").Bold();
+
+                                header.Cell()
+                                    .Border(1).BorderColor(Colors.Black)
+                                    .Padding(5)
+                                    .AlignCenter()
+                                    .Text("Signature").Bold();
                             });
 
                             // Add Rows
                             foreach (var customer in customers)
                             {
+                                // Previous cells remain the same
                                 table.Cell()
                                     .Border(1).BorderColor(Colors.Black)
-                                    .Padding(5) // Add padding to rows
-                                    .AlignCenter() // Center-align the text
+                                    .Padding(5)
+                                    .AlignCenter()
                                     .Text(customer.CustomerNo);
 
                                 table.Cell()
@@ -377,11 +411,23 @@ namespace CustomerCrud.Controllers
                                     .AlignLeft()
                                     .Text(customer.CustomerName);
 
-                                table.Cell() 
+                                table.Cell()
                                     .Border(1).BorderColor(Colors.Black)
                                     .Padding(5)
                                     .AlignCenter()
                                     .Text(customer.CustomerType?.CustomerTypeName ?? "N/A");
+
+                                table.Cell()
+                                    .Border(1).BorderColor(Colors.Black)
+                                    .Padding(5)
+                                    .AlignLeft()
+                                    .Text(customer.Email);
+
+                                table.Cell()
+                                    .Border(1).BorderColor(Colors.Black)
+                                    .Padding(5)
+                                    .AlignLeft()
+                                    .Text(customer.PhoneNumber);
 
                                 table.Cell()
                                     .Border(1).BorderColor(Colors.Black)
@@ -396,14 +442,82 @@ namespace CustomerCrud.Controllers
                                     .Text(customer.BusinessStart.ToString("dd-MM-yyyy") ?? "N/A");
 
                                 table.Cell()
+                                    .Border(1).BorderColor(Colors.Black)
+                                    .Padding(5)
+                                    .AlignRight()
+                                    .Text(customer.CreditLimit == 0 ? "0" : customer.CreditLimit.ToString("N0"));
+
+                                // Add photo cell
+                                table.Cell()
                                      .Border(1).BorderColor(Colors.Black)
                                      .Padding(5)
-                                     .AlignRight()
-                                     .Text(customer.CreditLimit == 0 ? "0" : customer.CreditLimit.ToString("N0"));
+                                     .Element(cell =>
+                                     {
+                                         if (!string.IsNullOrEmpty(customer.CustomerPhoto))
+                                         {
+                                             try
+                                             {
+                                                 // Convert relative path to absolute path
+                                                 string relativePath = customer.CustomerPhoto.TrimStart('/', '\\');
+                                                 string fullPath = Path.Combine(_env.WebRootPath, relativePath);
+
+                                                 if (System.IO.File.Exists(fullPath))
+                                                 {
+                                                     byte[] imageBytes = System.IO.File.ReadAllBytes(fullPath);
+                                                     var image = QuestPDF.Infrastructure.Image.FromBinaryData(imageBytes);
+
+                                                     cell.Image(image)
+                                                         .FitArea()
+                                                         .WithCompressionQuality(ImageCompressionQuality.Medium);
+                                                        // .WithHeight(50);
+                                                 }
+                                                 else
+                                                 {
+                                                     cell.Text($"Photo not found").FontSize(8);
+                                                 }
+                                             }
+                                             catch (Exception ex)
+                                             {
+                                                 cell.Text($"Error: {ex.Message}").FontSize(8);
+                                             }
+                                         }
+                                         else
+                                         {
+                                             cell.Text("No Photo").FontSize(8);
+                                         }
+                                     });
+
+
+                                // Add signature cell
+                                table.Cell()
+                                    .Border(1).BorderColor(Colors.Black)
+                                    .Padding(5)
+                                    .Element(cell =>
+                                    {
+                                        if (customer.CustomerSignature != null && customer.CustomerSignature.Length > 0)
+                                        {
+                                            try
+                                            {
+                                                using (var signatureStream = new MemoryStream(customer.CustomerSignature))
+                                                {
+                                                    cell.Image(signatureStream)
+                                                        .FitArea()
+                                                        .WithCompressionQuality(ImageCompressionQuality.Medium);
+                                                        //.WithHeight(50);
+                                                }
+                                            }
+                                            catch
+                                            {
+                                                cell.Text("Error loading signature");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            cell.Text("No Signature");
+                                        }
+                                    });
                             }
                         });
-
-
                     });
                 });
 
@@ -413,11 +527,8 @@ namespace CustomerCrud.Controllers
             }
             catch (Exception ex)
             {
-
                 throw;
             }
-
-           
         }
 
 
@@ -430,7 +541,7 @@ namespace CustomerCrud.Controllers
 
             // Set title
             worksheet.Cells[1, 1].Value = "Customer Report";
-            worksheet.Cells[1, 1, 1, 6].Merge = true; // Merge cells for the title
+            worksheet.Cells[1, 1, 1, 10].Merge = true; // Merge cells for the title
             worksheet.Cells[1, 1].Style.Font.Size = 16; // Title font size
             worksheet.Cells[1, 1].Style.Font.Bold = true; // Title bold
             worksheet.Cells[1, 1].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center; // Center align title
@@ -439,26 +550,18 @@ namespace CustomerCrud.Controllers
 
             // Add headers
             worksheet.Cells[2, 1].Value = "Customer ID";
-            worksheet.Cells[2, 1].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
-
             worksheet.Cells[2, 2].Value = "Name";
-            worksheet.Cells[2, 2].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
-
             worksheet.Cells[2, 3].Value = "Type";
-            worksheet.Cells[2, 3].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
-
-            worksheet.Cells[2, 4].Value = "Address";
-            worksheet.Cells[2, 4].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
-
-            worksheet.Cells[2, 5].Value = "Business Start";
-            worksheet.Cells[2, 5].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
-
-            worksheet.Cells[2, 6].Value = "Credit Limit";
-            worksheet.Cells[2, 6].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
-
+            worksheet.Cells[2, 4].Value = "Email";
+            worksheet.Cells[2, 5].Value = "Phone";
+            worksheet.Cells[2, 6].Value = "Address";
+            worksheet.Cells[2, 7].Value = "Business Start";
+            worksheet.Cells[2, 8].Value = "Credit Limit";
+            worksheet.Cells[2, 9].Value = "Photo";
+            worksheet.Cells[2, 10].Value = "Signature";
 
             // Style headers
-            using (var headerRange = worksheet.Cells[2, 1, 2, 6])
+            using (var headerRange = worksheet.Cells[2, 1, 2, 10])
             {
                 headerRange.Style.Font.Bold = true; // Bold headers
                 headerRange.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid; // Fill pattern
@@ -469,46 +572,113 @@ namespace CustomerCrud.Controllers
             // Add data
             for (int i = 0; i < customers.Count; i++)
             {
-                worksheet.Cells[i + 3, 1].Value = customers[i].CustomerNo;
-                worksheet.Cells[i + 3, 1].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                int rowIndex = i + 3;
 
-                worksheet.Cells[i + 3, 2].Value = customers[i].CustomerName;
-                worksheet.Cells[i + 3, 2].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left; // Left align Name
+                worksheet.Cells[rowIndex, 1].Value = customers[i].CustomerNo;
+                worksheet.Cells[rowIndex, 1].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                worksheet.Cells[rowIndex, 1].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
 
-                worksheet.Cells[i + 3, 3].Value = customers[i].CustomerType?.CustomerTypeName ?? "N/A";
-                worksheet.Cells[i + 3, 3].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center; // Center align Type
+                worksheet.Cells[rowIndex, 2].Value = customers[i].CustomerName;
+                worksheet.Cells[rowIndex, 2].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                worksheet.Cells[rowIndex, 2].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
 
-                worksheet.Cells[i + 3, 4].Value = customers[i].CustomerAddress ?? "N/A";
-                worksheet.Cells[i + 3, 4].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left; // Left align Address
+                worksheet.Cells[rowIndex, 3].Value = customers[i].CustomerType?.CustomerTypeName ?? "N/A";
+                worksheet.Cells[rowIndex, 3].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                worksheet.Cells[rowIndex, 3].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
 
-                worksheet.Cells[i + 3, 5].Value = customers[i].BusinessStart.ToString("dd-MM-yyyy") ?? "N/A";
-                worksheet.Cells[i + 3, 5].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center; // Center align Business Start
+                worksheet.Cells[rowIndex, 4].Value = customers[i].Email ?? "N/A";
+                worksheet.Cells[rowIndex, 4].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                worksheet.Cells[rowIndex, 4].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
 
-                worksheet.Cells[i + 3, 6].Value = customers[i].CreditLimit == 0 ? "0" : customers[i].CreditLimit.ToString("N0");
-                worksheet.Cells[i + 3, 6].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right; // Right align Credit Limit
+                worksheet.Cells[rowIndex, 5].Value = customers[i].PhoneNumber ?? "N/A";
+                worksheet.Cells[rowIndex, 5].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                worksheet.Cells[rowIndex, 5].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+
+                worksheet.Cells[rowIndex, 6].Value = customers[i].CustomerAddress ?? "N/A";
+                worksheet.Cells[rowIndex, 6].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                worksheet.Cells[rowIndex, 6].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+
+                worksheet.Cells[rowIndex, 7].Value = customers[i].BusinessStart.ToString("dd-MM-yyyy") ?? "N/A";
+                worksheet.Cells[rowIndex, 7].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                worksheet.Cells[rowIndex, 7].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+
+                worksheet.Cells[rowIndex, 8].Value = customers[i].CreditLimit == 0 ? "0" : customers[i].CreditLimit.ToString("N0");
+                worksheet.Cells[rowIndex, 8].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right;
+                worksheet.Cells[rowIndex, 8].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+
+                // Add photo
+                if (!string.IsNullOrEmpty(customers[i].CustomerPhoto))
+                {
+                    try
+                    {
+                        var relativePath = customers[i].CustomerPhoto.TrimStart('/', '\\');
+                        var fullPath = Path.Combine(_env.WebRootPath, relativePath);
+
+                        if (System.IO.File.Exists(fullPath))
+                        {
+                            var image = System.IO.File.ReadAllBytes(fullPath);
+                            var picture = worksheet.Drawings.AddPicture($"Photo_{i}", new MemoryStream(image));
+                            picture.SetPosition(rowIndex - 1, 0, 8, 0); // Row, RowOffset, Column, ColumnOffset
+                            picture.SetSize(60, 60); // Set image size
+                            worksheet.Row(rowIndex).Height = 50;
+                        }
+                    }
+                    catch
+                    {
+                        worksheet.Cells[rowIndex, 9].Value = "Error loading photo";
+                    }
+                }
+                else
+                {
+                    worksheet.Cells[rowIndex, 9].Value = "No Photo";
+                }
+
+                // Add signature
+                if (customers[i].CustomerSignature != null && customers[i].CustomerSignature.Length > 0)
+                {
+                    try
+                    {
+                        var picture = worksheet.Drawings.AddPicture($"Signature_{i}", new MemoryStream(customers[i].CustomerSignature));
+                        picture.SetPosition(rowIndex - 1, 0, 9, 0); // Row, RowOffset, Column, ColumnOffset
+                        picture.SetSize(60, 10); // Set image size
+                        worksheet.Row(rowIndex).Height = 50;
+                    }
+                    catch
+                    {
+                        worksheet.Cells[rowIndex, 10].Value = "Error loading signature";
+                    }
+                }
+                else
+                {
+                    worksheet.Cells[rowIndex, 10].Value = "No Signature";
+                }
             }
 
-            // Add borders to all cells with data
-            var dataRange = worksheet.Cells[2, 1, customers.Count + 2, 6];
-            dataRange.Style.Border.BorderAround(OfficeOpenXml.Style.ExcelBorderStyle.Thin, System.Drawing.Color.Black); // Border around all data
+            // Loop through each cell in the worksheet to apply borders
+            int lastRow = customers.Count + 2; // Total number of rows (including header)
+            int lastColumn = 10; // Number of columns (Customer details + Photo + Signature)
 
-            // Add borders to each cell in the data range
-            for (int row = 2; row <= customers.Count + 2; row++)
+            for (int row = 1; row <= lastRow; row++)
             {
-                for (int col = 1; col <= 6; col++)
+                for (int col = 1; col <= lastColumn; col++)
                 {
                     worksheet.Cells[row, col].Style.Border.BorderAround(OfficeOpenXml.Style.ExcelBorderStyle.Thin, System.Drawing.Color.Black);
                 }
             }
 
-            // Add border to the title
-            worksheet.Cells[1, 1, 1, 6].Style.Border.BorderAround(OfficeOpenXml.Style.ExcelBorderStyle.Thin, System.Drawing.Color.Black); // Border around the title
+
+
+
+            //// Add borders to all cells with data
+            //var dataRange = worksheet.Cells[2, 1, customers.Count + 2, 10];
+            //dataRange.Style.Border.BorderAround(OfficeOpenXml.Style.ExcelBorderStyle.Thin, System.Drawing.Color.Black); // Border around all data
 
             // Auto-fit columns
             worksheet.Cells.AutoFitColumns();
 
             return package.GetAsByteArray();
         }
+
 
 
 
@@ -597,157 +767,207 @@ namespace CustomerCrud.Controllers
         private byte[] GenerateWord(List<Customers> customers)
         {
             using var memoryStream = new MemoryStream();
-            var wordDocument = WordprocessingDocument.Create(memoryStream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document);
+            using (var wordDocument = WordprocessingDocument.Create(memoryStream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document))
+            {
+                // Add the main document part
+                var mainPart = wordDocument.AddMainDocumentPart();
+                mainPart.Document = new DocumentFormat.OpenXml.Wordprocessing.Document();
+                var body = mainPart.Document.AppendChild(new DocumentFormat.OpenXml.Wordprocessing.Body());
 
-            // Add main document part
-            var mainPart = wordDocument.AddMainDocumentPart();
-            mainPart.Document = new DocumentFormat.OpenXml.Wordprocessing.Document();
-            var body = mainPart.Document.AppendChild(new DocumentFormat.OpenXml.Wordprocessing.Body());
-
-            // Add Title
-            var title = new DocumentFormat.OpenXml.Wordprocessing.Paragraph(
-                new DocumentFormat.OpenXml.Wordprocessing.Run(
-                    new DocumentFormat.OpenXml.Wordprocessing.Text("Customer Report"))
+                // Add Title
+                var titleParagraph = new DocumentFormat.OpenXml.Wordprocessing.Paragraph(
+                    new DocumentFormat.OpenXml.Wordprocessing.Run(
+                        new DocumentFormat.OpenXml.Wordprocessing.Text("Customer Report"))
+                );
+                titleParagraph.ParagraphProperties = new DocumentFormat.OpenXml.Wordprocessing.ParagraphProperties
                 {
-                    RunProperties = new DocumentFormat.OpenXml.Wordprocessing.RunProperties
+                    Justification = new DocumentFormat.OpenXml.Wordprocessing.Justification
                     {
-                        Bold = new DocumentFormat.OpenXml.Wordprocessing.Bold(),
-                        FontSize = new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = "28" }
-                    }
-                });
-            body.Append(title);
+                        Val = DocumentFormat.OpenXml.Wordprocessing.JustificationValues.Center
+                    },
+                    SpacingBetweenLines = new DocumentFormat.OpenXml.Wordprocessing.SpacingBetweenLines { After = "200" }
+                };
+                body.Append(titleParagraph);
 
-            // Create a table
-            var table = new DocumentFormat.OpenXml.Wordprocessing.Table();
+                // Create Table
+                var table = new DocumentFormat.OpenXml.Wordprocessing.Table();
 
-            // Set table properties for borders
-            var tableProperties = new DocumentFormat.OpenXml.Wordprocessing.TableProperties(
-                new DocumentFormat.OpenXml.Wordprocessing.TableBorders(
-                    new DocumentFormat.OpenXml.Wordprocessing.TopBorder { Val = DocumentFormat.OpenXml.Wordprocessing.BorderValues.Single, Size = 8 },
-                    new DocumentFormat.OpenXml.Wordprocessing.BottomBorder { Val = DocumentFormat.OpenXml.Wordprocessing.BorderValues.Single, Size = 8 },
-                    new DocumentFormat.OpenXml.Wordprocessing.LeftBorder { Val = DocumentFormat.OpenXml.Wordprocessing.BorderValues.Single, Size = 8 },
-                    new DocumentFormat.OpenXml.Wordprocessing.RightBorder { Val = DocumentFormat.OpenXml.Wordprocessing.BorderValues.Single, Size = 8 },
-                    new DocumentFormat.OpenXml.Wordprocessing.InsideHorizontalBorder { Val = DocumentFormat.OpenXml.Wordprocessing.BorderValues.Single, Size = 8 },
-                    new DocumentFormat.OpenXml.Wordprocessing.InsideVerticalBorder { Val = DocumentFormat.OpenXml.Wordprocessing.BorderValues.Single, Size = 8 }
-                )
-            );
-            table.AppendChild(tableProperties);
-
-            // Add headers
-            var headerRow = new DocumentFormat.OpenXml.Wordprocessing.TableRow();
-            headerRow.Append(
-                CreateHeaderCell("Customer ID"),
-                CreateHeaderCell("Name"),
-                CreateHeaderCell("Type"),
-                CreateHeaderCell("Address"),
-                CreateHeaderCell("Business Start"),
-                CreateHeaderCell("Credit Limit")
-            );
-            table.Append(headerRow);
-
-            // Add customer data
-            foreach (var customer in customers)
-            {
-                var row = new DocumentFormat.OpenXml.Wordprocessing.TableRow();
-                row.Append(
-                    CreateTableCell(customer.CustomerNo),
-                    CreateTableCell(customer.CustomerName),
-                    CreateTableCell(customer.CustomerType?.CustomerTypeName ?? "N/A"),
-                    CreateTableCell(customer.CustomerAddress ?? "N/A"),
-                    CreateTableCell(customer.BusinessStart.ToString("dd-MM-yyyy") ?? "N/A"),
-                    //CreateTableCell(customer.CreditLimit.ToString() ?? "0")
-                    CreateTableCell(customer.CreditLimit == 0 ? "0" : customer.CreditLimit.ToString("N0"))
-
-                //CreateTableCell(customer.CustomerNo, AlignmentValues.Right), // Right-align Customer No
-                //CreateTableCell(customer.CustomerName, AlignmentValues.Left), // Left-align Name
-                //CreateTableCell(customer.CustomerType?.CustomerTypeName ?? "N/A", AlignmentValues.Center), // Center-align Type
-                //CreateTableCell(customer.CustomerAddress ?? "N/A", AlignmentValues.Left), // Left-align Address
-                //CreateTableCell(customer.BusinessStart.ToString("dd-MM-yyyy") ?? "N/A", AlignmentValues.Center), // Center-align Business Start
-                //CreateTableCell(customer.CreditLimit.ToString() ?? "N/A", AlignmentValues.Right) // Right-align Credit Limit
-                );
-                table.Append(row);
-            }
-
-
-            //DocumentFormat.OpenXml.Wordprocessing.TableCell CreateTableCell(string text, AlignmentValues alignment)
-            //{
-            //    return new DocumentFormat.OpenXml.Wordprocessing.TableCell(
-            //        new DocumentFormat.OpenXml.Wordprocessing.TableCellProperties(
-            //            new DocumentFormat.OpenXml.Wordprocessing.TableCellWidth { Type = DocumentFormat.OpenXml.Wordprocessing.TableWidthUnitValues.Dxa, Width = "2400" },
-            //            new DocumentFormat.OpenXml.Wordprocessing.TableCellMargin(
-            //                new DocumentFormat.OpenXml.Wordprocessing.TopMargin { Width = "100", Type = DocumentFormat.OpenXml.Wordprocessing.TableWidthUnitValues.Dxa },
-            //                new DocumentFormat.OpenXml.Wordprocessing.BottomMargin { Width = "100", Type = DocumentFormat.OpenXml.Wordprocessing.TableWidthUnitValues.Dxa },
-            //                new DocumentFormat.OpenXml.Wordprocessing.LeftMargin { Width = "100", Type = DocumentFormat.OpenXml.Wordprocessing.TableWidthUnitValues.Dxa },
-            //                new DocumentFormat.OpenXml.Wordprocessing.RightMargin { Width = "100", Type = DocumentFormat.OpenXml.Wordprocessing.TableWidthUnitValues.Dxa }
-            //            )
-            //        ),
-            //        new DocumentFormat.OpenXml.Wordprocessing.Paragraph(
-            //            new DocumentFormat.OpenXml.Wordprocessing.ParagraphProperties(
-            //                new DocumentFormat.OpenXml.Wordprocessing.Justification { Val = alignment }
-            //            ),
-            //            new DocumentFormat.OpenXml.Wordprocessing.Run(new DocumentFormat.OpenXml.Wordprocessing.Text(text))
-            //        )
-            //    );
-            //}
-
-
-            // Helper methods
-            DocumentFormat.OpenXml.Wordprocessing.TableCell CreateTableCell(string text)
-            {
-                return new DocumentFormat.OpenXml.Wordprocessing.TableCell(
-                    new DocumentFormat.OpenXml.Wordprocessing.TableCellProperties(
-                        new DocumentFormat.OpenXml.Wordprocessing.TableCellWidth { Type = DocumentFormat.OpenXml.Wordprocessing.TableWidthUnitValues.Dxa, Width = "2400" },
-                        new DocumentFormat.OpenXml.Wordprocessing.TableCellMargin(
-                            new DocumentFormat.OpenXml.Wordprocessing.TopMargin { Width = "100", Type = DocumentFormat.OpenXml.Wordprocessing.TableWidthUnitValues.Dxa },
-                            new DocumentFormat.OpenXml.Wordprocessing.BottomMargin { Width = "100", Type = DocumentFormat.OpenXml.Wordprocessing.TableWidthUnitValues.Dxa },
-                            new DocumentFormat.OpenXml.Wordprocessing.LeftMargin { Width = "100", Type = DocumentFormat.OpenXml.Wordprocessing.TableWidthUnitValues.Dxa },
-                            new DocumentFormat.OpenXml.Wordprocessing.RightMargin { Width = "100", Type = DocumentFormat.OpenXml.Wordprocessing.TableWidthUnitValues.Dxa }
-                        )
-                    ),
-                    new DocumentFormat.OpenXml.Wordprocessing.Paragraph(
-                        new DocumentFormat.OpenXml.Wordprocessing.Run(new DocumentFormat.OpenXml.Wordprocessing.Text(text))
+                // Add Table Properties
+                var tableProperties = new DocumentFormat.OpenXml.Wordprocessing.TableProperties(
+                    new DocumentFormat.OpenXml.Wordprocessing.TableBorders(
+                        new DocumentFormat.OpenXml.Wordprocessing.TopBorder { Val = DocumentFormat.OpenXml.Wordprocessing.BorderValues.Single, Size = 8 },
+                        new DocumentFormat.OpenXml.Wordprocessing.BottomBorder { Val = DocumentFormat.OpenXml.Wordprocessing.BorderValues.Single, Size = 8 },
+                        new DocumentFormat.OpenXml.Wordprocessing.LeftBorder { Val = DocumentFormat.OpenXml.Wordprocessing.BorderValues.Single, Size = 8 },
+                        new DocumentFormat.OpenXml.Wordprocessing.RightBorder { Val = DocumentFormat.OpenXml.Wordprocessing.BorderValues.Single, Size = 8 },
+                        new DocumentFormat.OpenXml.Wordprocessing.InsideHorizontalBorder { Val = DocumentFormat.OpenXml.Wordprocessing.BorderValues.Single, Size = 8 },
+                        new DocumentFormat.OpenXml.Wordprocessing.InsideVerticalBorder { Val = DocumentFormat.OpenXml.Wordprocessing.BorderValues.Single, Size = 8 }
                     )
                 );
-            }
+                table.AppendChild(tableProperties);
 
-            DocumentFormat.OpenXml.Wordprocessing.TableCell CreateHeaderCell(string text)
-            {
-                return new DocumentFormat.OpenXml.Wordprocessing.TableCell(
-                    new DocumentFormat.OpenXml.Wordprocessing.TableCellProperties(
-                        new DocumentFormat.OpenXml.Wordprocessing.TableCellWidth { Type = DocumentFormat.OpenXml.Wordprocessing.TableWidthUnitValues.Dxa, Width = "2400" },
-                        new DocumentFormat.OpenXml.Wordprocessing.Shading
-                        {
-                            Fill = "CCCCCC" // Light gray background
-                        },
-                        new DocumentFormat.OpenXml.Wordprocessing.TableCellMargin(
-                            new DocumentFormat.OpenXml.Wordprocessing.TopMargin { Width = "100", Type = DocumentFormat.OpenXml.Wordprocessing.TableWidthUnitValues.Dxa },
-                            new DocumentFormat.OpenXml.Wordprocessing.BottomMargin { Width = "100", Type = DocumentFormat.OpenXml.Wordprocessing.TableWidthUnitValues.Dxa },
-                            new DocumentFormat.OpenXml.Wordprocessing.LeftMargin { Width = "100", Type = DocumentFormat.OpenXml.Wordprocessing.TableWidthUnitValues.Dxa },
-                            new DocumentFormat.OpenXml.Wordprocessing.RightMargin { Width = "100", Type = DocumentFormat.OpenXml.Wordprocessing.TableWidthUnitValues.Dxa }
-                        )
-                    ),
-                    new DocumentFormat.OpenXml.Wordprocessing.Paragraph(
-                        new DocumentFormat.OpenXml.Wordprocessing.Run(
-                            new DocumentFormat.OpenXml.Wordprocessing.Text(text) {   }
-                        )
-                    )
+                // Add Headers
+                var headerRow = new DocumentFormat.OpenXml.Wordprocessing.TableRow();
+                headerRow.Append(
+                    CreateHeaderCell("Customer ID"),
+                    CreateHeaderCell("Name"),
+                    CreateHeaderCell("Type"),
+                    CreateHeaderCell("Email"),
+                    CreateHeaderCell("Phone"),
+                    CreateHeaderCell("Address"),
+                    CreateHeaderCell("Business Start"),
+                    CreateHeaderCell("Credit Limit"),
+                    CreateHeaderCell("Photo"),
+                    CreateHeaderCell("Signature")
                 );
-            }
+                table.Append(headerRow);
 
-            body.Append(table);
-            wordDocument.Clone();
-          //  wordDocument.Close();
+                // Add Customer Data
+                foreach (var customer in customers)
+                {
+                    var row = new DocumentFormat.OpenXml.Wordprocessing.TableRow();
+                    row.Append(
+                        CreateTableCell(customer.CustomerNo),
+                        CreateTableCell(customer.CustomerName),
+                        CreateTableCell(customer.CustomerType?.CustomerTypeName ?? "N/A"),
+                        CreateTableCell(customer.Email ?? "N/A"),
+                        CreateTableCell(customer.PhoneNumber ?? "N/A"),
+                        CreateTableCell(customer.CustomerAddress ?? "N/A"),
+                        CreateTableCell(customer.BusinessStart.ToString("dd-MM-yyyy")),
+                        CreateTableCell(customer.CreditLimit == 0 ? "0" : customer.CreditLimit.ToString("N0")),
+                        CreateImageCell(mainPart, imagePath: customer.CustomerPhoto), // For Photo from File
+                        CreateImageCell(mainPart, imageBytes: customer.CustomerSignature) // For Signature from Database (byte[])
+                    );
+                    table.Append(row);
+                }
+
+                // Append the table to the document body
+                body.Append(table);
+
+                // Save changes to the Word document
+                mainPart.Document.Save();
+            }
 
             return memoryStream.ToArray();
         }
 
+
+        private DocumentFormat.OpenXml.Wordprocessing.TableCell CreateImageCell(MainDocumentPart mainPart, string imagePath = null, byte[] imageBytes = null)
+        {
+            if (string.IsNullOrEmpty(imagePath) && imageBytes != null)
+            //if (!string.IsNullOrEmpty(imagePath) && imageBytes != null)
+            {
+                return CreateTableCell("N/A");
+            }
+
+            ImagePart imagePart = null;
+
+            try
+            {
+                // If imageBytes are provided, create a memory stream
+                if (imageBytes != null)
+                {
+                    imagePart = mainPart.AddImagePart(ImagePartType.Jpeg);
+                    using (var imageStream = new MemoryStream(imageBytes))
+                    {
+                        imagePart.FeedData(imageStream);
+                    }
+                }
+                else if (!string.IsNullOrEmpty(imagePath) && System.IO.File.Exists(imagePath))
+                {
+                    imagePart = mainPart.AddImagePart(ImagePartType.Jpeg);
+                    using (var imageStream = new FileStream(imagePath, FileMode.Open))
+                    {
+                        imagePart.FeedData(imageStream);
+                    }
+                }
+                else
+                {
+                    return CreateTableCell("N/A");
+                }
+
+                // Check if imagePart is correctly created
+                if (imagePart == null)
+                {
+                    return CreateTableCell("Image load error");
+                }
+
+                // Set the desired size for the image (2 inches wide by 1.5 inches tall)
+                long widthInEMU = 2 * 91440;  // 2 inches = 182880 EMUs
+                long heightInEMU = 1 * 91440;  // 1.5 inches = 137160 EMUs
+
+                var image = new Drawing(
+                    new DocumentFormat.OpenXml.Drawing.Wordprocessing.Inline(
+                        new DocumentFormat.OpenXml.Drawing.Graphic(
+                            new DocumentFormat.OpenXml.Drawing.GraphicData(
+                                new DocumentFormat.OpenXml.Drawing.Pictures.Picture(
+                                    new DocumentFormat.OpenXml.Drawing.Pictures.NonVisualPictureProperties(
+                                        new DocumentFormat.OpenXml.Drawing.Pictures.NonVisualDrawingProperties
+                                        {
+                                            Id = (UInt32Value)1U,
+                                            Name = "Picture"
+                                        },
+                                        new DocumentFormat.OpenXml.Drawing.Pictures.NonVisualPictureDrawingProperties()
+                                    ),
+                                    new DocumentFormat.OpenXml.Drawing.Pictures.BlipFill(
+                                        new DocumentFormat.OpenXml.Drawing.Blip { Embed = mainPart.GetIdOfPart(imagePart) },
+                                        new DocumentFormat.OpenXml.Drawing.Stretch(new DocumentFormat.OpenXml.Drawing.FillRectangle())
+                                    ),
+                                    new DocumentFormat.OpenXml.Drawing.Pictures.ShapeProperties()
+                                )
+                            )
+                            { Uri = "http://schemas.openxmlformats.org/drawingml/2006/picture" }
+                        )
+                    )
+                    {
+                        DistanceFromTop = (UInt32Value)0U,
+                        DistanceFromBottom = (UInt32Value)0U,
+                        DistanceFromLeft = (UInt32Value)0U,
+                        DistanceFromRight = (UInt32Value)0U,
+                        Extent = new DocumentFormat.OpenXml.Drawing.Wordprocessing.Extent { Cx = widthInEMU, Cy = heightInEMU }
+                    });
+
+                var paragraph = new DocumentFormat.OpenXml.Wordprocessing.Paragraph(
+                    new DocumentFormat.OpenXml.Wordprocessing.Run(image));
+
+                return new DocumentFormat.OpenXml.Wordprocessing.TableCell(paragraph);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (or output to debug console)
+                Console.WriteLine($"Error embedding image: {ex.Message}");
+                return CreateTableCell("Image error");
+            }
+        }
+
+
+        // Helper Method: Create Table Cell
         private DocumentFormat.OpenXml.Wordprocessing.TableCell CreateTableCell(string text)
         {
             return new DocumentFormat.OpenXml.Wordprocessing.TableCell(
                 new DocumentFormat.OpenXml.Wordprocessing.Paragraph(
                     new DocumentFormat.OpenXml.Wordprocessing.Run(
-                        new DocumentFormat.OpenXml.Wordprocessing.Text(text))));
+                        new DocumentFormat.OpenXml.Wordprocessing.Text(text)
+                    )
+                )
+            );
         }
+
+        // Helper Method: Create Header Cell
+        private DocumentFormat.OpenXml.Wordprocessing.TableCell CreateHeaderCell(string text)
+        {
+            return new DocumentFormat.OpenXml.Wordprocessing.TableCell(
+                new DocumentFormat.OpenXml.Wordprocessing.TableCellProperties(
+                    new DocumentFormat.OpenXml.Wordprocessing.Shading { Fill = "CCCCCC" } // Light gray background
+                ),
+                new DocumentFormat.OpenXml.Wordprocessing.Paragraph(
+                    new DocumentFormat.OpenXml.Wordprocessing.Run(
+                        new DocumentFormat.OpenXml.Wordprocessing.Text(text)
+                    )
+                )
+            );
+        }
+
+        // Helper Method: Create Image Cell
 
 
 
@@ -771,6 +991,19 @@ namespace CustomerCrud.Controllers
                 CustomerTypeName = customer.CustomerType.CustomerTypeName,
                 CustomerAddress = customer.CustomerAddress,
                 CreditLimit = customer.CreditLimit,
+
+                Email = customer.Email,
+                PhoneNumber = customer.PhoneNumber,
+                CustomerPhotoLink = customer.CustomerPhoto,
+
+
+
+                CustomerSignatureShow = customer.CustomerSignature,
+                CustomerSignatureLink = customer.CustomerSignature != null ? "data:image/jpeg;base64," + Convert.ToBase64String(customer.CustomerSignature) : null,
+
+
+
+
                 Addresseslo = customer.AddressList.Select(a => new AddressViewModel
                 {
                     ContactPerson = a.ContactPerson,
@@ -1277,9 +1510,7 @@ namespace CustomerCrud.Controllers
                 PhoneNumber = customer.PhoneNumber,
                 CustomerPhotoLink = customer.CustomerPhoto,
 
-                //CustomerSignature = customer.CustomerSignatureshow,
-                //CustomerSignatureLink = customer.CustomerSignatureshow != null ? "data:image/jpeg;base64," + Convert.ToBase64String(customer.CustomerSignatureshow) : null,
-
+               
 
                 CustomerSignatureShow = customer.CustomerSignature,
                 CustomerSignatureLink = customer.CustomerSignature != null ? "data:image/jpeg;base64," + Convert.ToBase64String(customer.CustomerSignature) : null,
