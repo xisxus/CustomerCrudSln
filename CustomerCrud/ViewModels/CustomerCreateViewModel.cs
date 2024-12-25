@@ -20,9 +20,12 @@ namespace CustomerCrud.ViewModels
 
         [DataType(DataType.Upload)]
         public IFormFile CustomerPhoto { get; set; }
+        public string? CustomerPhotoLink { get; set; }
 
         [DataType(DataType.Upload)]
         public IFormFile CustomerSignature { get; set; }
+        public byte[] CustomerSignatureShow { get; set; }
+        public string? CustomerSignatureLink { get; set; }
 
         public List<AddressViewModel> Addresses { get; set; } = new List<AddressViewModel>();
     }

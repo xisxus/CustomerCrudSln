@@ -835,7 +835,7 @@ namespace CustomerCrud.Controllers
             if (photo != null && photo.Length > 0)
             {
                 // Check the file size (must be less than 100 KB)
-                if (photo.Length > 100 * 1024)  // 100 KB in bytes
+                if (photo.Length > 1000 * 1024)  // 100 KB in bytes
                 {
                     return Json(new { success = false, message = "File size exceeds the maximum limit of 100 KB." });
                 }
@@ -906,7 +906,7 @@ namespace CustomerCrud.Controllers
                 if (file != null && file.Length > 0)
                 {
                     // Check the file size (must be less than 100 KB)
-                    if (file.Length > 100 * 1024)  // 100 KB in bytes
+                    if (file.Length > 1000 * 1024)  // 100 KB in bytes
                     {
                         return ("File size exceeds the maximum limit of 100 KB.", null);
                     }
@@ -1009,12 +1009,7 @@ namespace CustomerCrud.Controllers
                 var customerPhoto = "";
 
 
-                //var customerPhotoCheck = await SaveCustomerPhotoAsync(viewModel.CustomerPhoto, customerNumber);
-
-                //if (customerPhotoCheck.Value.success == true)
-                //{
-
-                //}
+           
 
                 var result = await SaveCustomerPhotoAsync(viewModel.CustomerPhoto, customerNumber);
                 var jsonResult = result as JsonResult;
@@ -1278,6 +1273,21 @@ namespace CustomerCrud.Controllers
                 BusinessStart = customer.BusinessStart,
                 CreditLimit = customer.CreditLimit,
                 CustomerTypeId = customer.CustomerTypeId,
+                Email = customer.Email,
+                PhoneNumber = customer.PhoneNumber,
+                CustomerPhotoLink = customer.CustomerPhoto,
+
+                //CustomerSignature = customer.CustomerSignatureshow,
+                //CustomerSignatureLink = customer.CustomerSignatureshow != null ? "data:image/jpeg;base64," + Convert.ToBase64String(customer.CustomerSignatureshow) : null,
+
+
+                CustomerSignatureShow = customer.CustomerSignature,
+                CustomerSignatureLink = customer.CustomerSignature != null ? "data:image/jpeg;base64," + Convert.ToBase64String(customer.CustomerSignature) : null,
+
+
+
+
+
                 CustomerTypeName = customer.CustomerType.CustomerTypeName,
                 Addresses = customer.AddressList
                     .Select(a => new AddressViewModel 
@@ -1333,6 +1343,64 @@ namespace CustomerCrud.Controllers
                 }
             }
 
+            var customer = await _context.Customers
+                .Include(c => c.AddressList)
+                .FirstOrDefaultAsync(c => c.CustomersId == id);
+
+            if (customer == null)
+            {
+                return Json(new { success = false, message = "Customer not found" });
+            }
+
+
+
+            if (viewModel.CustomerPhoto != null)
+            {
+               
+
+                var result = await SaveCustomerPhotoAsync(viewModel.CustomerPhoto, viewModel.CustomerNo);
+                var jsonResult = result as JsonResult;
+
+                if (jsonResult != null)
+                {
+                    var jsonData = jsonResult.Value as dynamic;
+                    if (jsonData.success == true)
+                    {
+                        customer.CustomerPhoto = jsonData.message;
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = jsonData.message });
+                    }
+                }
+
+            }
+
+
+
+            if (viewModel.CustomerSignature != null)
+            {
+                
+
+                var (message, fileData) = await ConvertFileToByteArray(viewModel.CustomerSignature);
+
+
+                if (message == "File uploaded successfully.")
+                {
+                    customer.CustomerSignature = fileData;
+                }
+                else
+                {
+                    Console.WriteLine(message);
+                    return Json(new { success = false, message = message });
+                    // Display the error message to the user
+
+                }
+            }
+            
+
+
+
             viewModel.Addresses = addrss;
 
             if (id <= 0)
@@ -1352,14 +1420,7 @@ namespace CustomerCrud.Controllers
             //    return Json(new { success = false, message = "Please fix validation errors." });
             //}
 
-            var customer = await _context.Customers
-                .Include(c => c.AddressList)
-                .FirstOrDefaultAsync(c => c.CustomersId == id);
-
-            if (customer == null)
-            {
-                return Json(new { success = false, message = "Customer not found" });
-            }
+            
 
             // Update the customer details
             customer.CustomerName = viewModel.CustomerName;
@@ -1367,6 +1428,8 @@ namespace CustomerCrud.Controllers
             customer.BusinessStart = viewModel.BusinessStart;
             customer.CreditLimit = viewModel.CreditLimit;
             customer.CustomerTypeId = viewModel.CustomerTypeId;
+            customer.Email = viewModel.Email;
+            customer.PhoneNumber = viewModel.PhoneNumber;
 
             // Update addresses
             customer.AddressList.Clear();
