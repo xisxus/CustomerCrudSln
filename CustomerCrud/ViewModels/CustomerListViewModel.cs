@@ -23,7 +23,9 @@ namespace CustomerCrud.ViewModels
         [DataType(DataType.Upload)]
         public byte[] CustomerSignature { get; set; }
 
-        
+        public string CustomerSignatureUrl { get; set; }
+
+
 
         public List<AddressViewModel> Addresses { get; set; } = new List<AddressViewModel>();
     }

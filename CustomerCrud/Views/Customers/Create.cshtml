@@ -26,8 +26,8 @@
                     </div>
                 </div>
                 <div class="row">
-                <div class="col-md-1"></div>
-                <div class="col-md-6 shadow p-3 mb-5 bg-white rounded g-2 me-4">
+               @*  <div class="col-md-1"></div> *@
+                <div class="col-md-8 shadow p-3 mb-5 bg-white rounded g-2 me-4 ms-5">
                     <!-- First Row -->
                     <div class="row mb-3">
 
@@ -39,7 +39,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label asp-for="CustomerName">Customer Name</label>
+                                <label asp-for="CustomerName">Customer Name<span style="color:red">*</span></label>
                                 <input asp-for="CustomerName" class="form-control" id="CustomerName" />
                                 <span asp-validation-for="CustomerName" class="text-danger"></span>
                             </div>
@@ -51,7 +51,7 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label asp-for="CustomerAddress">Customer Address</label>
+                                <label asp-for="CustomerAddress">Customer Address<span style="color:red">*</span></label>
                                 <input asp-for="CustomerAddress" class="form-control" id="CustomerAddress" />
                                 <span asp-validation-for="CustomerAddress" class="text-danger"></span>
                             </div>
@@ -103,14 +103,14 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label asp-for="Email">Customer Email</label>
+                                <label asp-for="Email">Customer Email<span style="color:red">*</span></label>
                                 <input asp-for="Email" class="form-control" id="CustomerEmail" type="email" />
                                 <span asp-validation-for="Email" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label asp-for="PhoneNumber">Phone Number</label>
+                                <label asp-for="PhoneNumber">Phone Number<span style="color:red">*</span></label>
                                 <input asp-for="PhoneNumber" class="form-control" type="text" id="PhoneNumber" />
                                 <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                             </div>
@@ -124,36 +124,38 @@
 
 
 
-                <div class="col-md-4 shadow p-3 mb-5 bg-white rounded g-2">
+                <div class="col-md-3 shadow p-3 mb-5 bg-white rounded g-2 center-block ms-2">
                     <!-- Customer Photo -->
-                    <div class="form-group">
-                        <label for="CustomerPhoto">Customer Photo</label>
+                    <div class="form-group ms-2 mb-2">
+                        <label for="CustomerPhoto">Customer Photo<span style="color:red">*</span></label>
                         <!-- This is the Browse Photo button -->
-                        <button type="button" class="btn btn-primary" id="browsePhotoBtn">Browse Photo</button>
                         <input id="CustomerPhoto" name="CustomerPhoto" type="file" class="form-control" style="display: none;" />
                         <div class="mt-2" id="CustomerPhotoPreviewContainer">
                             <!-- Preview image for customer photo will be shown here -->
-                            <img id="CustomerPhotoPreview" src="https://via.placeholder.com/150" alt="No Image Selected" style="max-width: 100%;" />
+                            <img id="CustomerPhotoPreview" src="/images/300x300R.jpg" alt="No Image Selected" style="" height="225" width="225" />
                         </div>
                         <div class="mt-2">
                             <!-- Clear Photo button -->
-                            <button type="button" class="btn btn-secondary" id="clearPhotoBtn">Clear Photo</button>
+                            <button type="button" class="btn btn-primary" id="browsePhotoBtn">Browse</button>
+
+                            <button type="button" class="btn btn-secondary" id="clearPhotoBtn">Clear</button>
                         </div>
                     </div>
 
                     <!-- Customer Signature -->
-                    <div class="form-group">
-                        <label for="CustomerSignature">Customer Signature</label>
+                    <div class="form-group ms-2">
+                        <label for="CustomerSignature">Customer Signature<span style="color:red">*</span></label>
                         <!-- This is the Browse Signature button -->
-                        <button type="button" class="btn btn-primary" id="browseSignatureBtn">Browse Signature</button>
                         <input id="CustomerSignature" name="CustomerSignature" type="file" class="form-control" style="display: none;" />
                         <div class="mt-2" id="CustomerSignaturePreviewContainer">
                             <!-- Preview image for customer signature will be shown here -->
-                            <img id="CustomerSignaturePreview" src="https://via.placeholder.com/150" alt="No Image Selected" style="max-width: 100%;" />
+                            <img id="CustomerSignaturePreview" src="~/images/300x80.jpg" alt="No Image Selected" style="max-width: 100%;" height="60" width="225"/>
                         </div>
                         <div class="mt-2">
                             <!-- Clear Signature button -->
-                            <button type="button" class="btn btn-secondary" id="clearSignatureBtn">Clear Signature</button>
+                            <button type="button" class="btn btn-primary" id="browseSignatureBtn">Browse</button>
+
+                            <button type="button" class="btn btn-secondary" id="clearSignatureBtn">Clear</button>
                         </div>
                     </div>
                 </div>
@@ -166,7 +168,70 @@
 
                 </div>
 
-               
+                <hr/>
+
+                <div class="row shadow p-3 mb-5 bg-white rounded g-2 me-4 ">
+                    <!-- Address List -->
+                    <div id="addressContainer" class="mb-4">
+                        <div class="row">
+                            <div class="col-md-11">
+                                <h4 class="mb-3">Delivery Addresses</h4>
+                            </div>
+                            <div class="col-md-1 ">
+                                <div class=" float-right">
+                                    <button type="button" id="addAddressBtn" class="btn btn-secondary">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div id="addressList">
+                            @for (int i = 0; i < Model.Addresses.Count; i++)
+                            {
+                                <div class="address-item mb-2">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="input-group ">
+                                                <input type="text" name="Addresses[@i].AddressName" value="@Model.Addresses[i].AddressName" class="form-control" placeholder="Enter Address" />
+
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="input-group ">
+                                                <input type="text" name="Addresses[@i].ContactPerson" value="@Model.Addresses[i].ContactPerson" class="form-control" placeholder="Enter ContactPerson" />
+
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="input-group">
+                                                <input type="text" name="Addresses[@i].PhoneNumber" value="@Model.Addresses[i].PhoneNumber" class="form-control" placeholder="Enter PhoneNumber" />
+                                                <button type="button" class="btn btn-danger remove-address"><i class="fa fa-trash"></i></button>
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+
+                                </div>
+                            }
+                        </div>
+
+                        @*  <button type="button" id="addAddressBtn" class="btn btn-secondary">
+                    <i class="fa fa-plus"></i> Add Address
+                </button> *@
+                    </div>
+
+                    <!-- Submit -->
+                    <div class="form-group text-center">
+                        <button type="submit" class="btn btn-primary px-4">Create Customer</button>
+                        <a asp-action="Index" class="btn btn-primary">
+                            <i class="fa fa-plus"></i> Back To List
+                        </a>
+                    </div>
+                </div>
 
 
 
@@ -180,66 +245,9 @@
 
         <hr/>
 
-        <!-- Address List -->
-        <div id="addressContainer" class="mb-4">
-            <div class="row">
-                <div class="col-md-11">
-                    <h4 class="mb-3">Delivery Addresses</h4>
-                </div>
-                <div class="col-md-1 ">
-                    <div class=" float-right">
-                        <button type="button" id="addAddressBtn" class="btn btn-secondary">
-                            <i class="fa fa-plus"></i>
-                        </button>
-                    </div>
-                   
-                </div>
-            </div>
-            
-            <div id="addressList">
-                @for (int i = 0; i < Model.Addresses.Count; i++)
-                {
-                    <div class="address-item mb-2">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="input-group ">
-                                     <input type="text" name="Addresses[@i].AddressName" value="@Model.Addresses[i].AddressName" class="form-control" placeholder="Enter Address" /> 
-                                   
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="input-group ">
-                                     <input type="text" name="Addresses[@i].ContactPerson" value="@Model.Addresses[i].ContactPerson" class="form-control" placeholder="Enter ContactPerson" /> 
-                                  
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="input-group">
-                                     <input type="text" name="Addresses[@i].PhoneNumber" value="@Model.Addresses[i].PhoneNumber" class="form-control" placeholder="Enter PhoneNumber" /> 
-                                     <button type="button" class="btn btn-danger remove-address"><i class="fa fa-trash"></i></button> 
-                               
-                                </div>
-                            </div>
-                        </div>
+        
 
-
-
-                    </div>
-                }
-            </div>
-
-            @*  <button type="button" id="addAddressBtn" class="btn btn-secondary">
-                <i class="fa fa-plus"></i> Add Address
-            </button> *@
-        </div>
-
-        <!-- Submit -->
-        <div class="form-group text-center">
-            <button type="submit" class="btn btn-primary px-4">Create Customer</button>
-            <a asp-action="Index" class="btn btn-primary">
-                <i class="fa fa-plus"></i> Back To List
-            </a>
-        </div>
+       
 
 
         @*     <div class="form-group">
@@ -412,14 +420,14 @@
         // Clear Customer Photo preview and reset file input
         $("#clearPhotoBtn").click(function () {
             $("#CustomerPhoto").val(''); // Reset the file input
-            $("#CustomerPhotoPreview").attr("src", "https://via.placeholder.com/150"); // Reset to default image
+            $("#CustomerPhotoPreview").attr("src", "/images/300x300R.jpg"); // Reset to default image
             $("#CustomerPhotoPreview").show(); // Show the default image
         });
 
         // Clear Customer Signature preview and reset file input
         $("#clearSignatureBtn").click(function () {
             $("#CustomerSignature").val(''); // Reset the file input
-            $("#CustomerSignaturePreview").attr("src", "https://via.placeholder.com/150"); // Reset to default image
+            $("#CustomerSignaturePreview").attr("src", "/images/300x80.jpg"); // Reset to default image
             $("#CustomerSignaturePreview").show(); // Show the default image
         });
 

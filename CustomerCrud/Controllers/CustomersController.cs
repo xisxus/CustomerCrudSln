@@ -1,8 +1,4 @@
-﻿
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using CustomerCrud.Data;
@@ -22,6 +18,11 @@ using QuestPDF.Infrastructure;
 using QuestPDF.Helpers;
 using OfficeOpenXml;
 using DocumentFormat.OpenXml.Vml.Office;
+
+using System.Drawing;  // For image dimension validation
+using System.IO;
+using Microsoft.AspNetCore.Http;
+using System.Threading.Tasks;
 
 
 
@@ -68,9 +69,17 @@ namespace CustomerCrud.Controllers
                     CreditLimit = c.CreditLimit,
                     AdditionalAddressesCount = c.AddressList.Count,
                     CustomerPhotoLink = c.CustomerPhoto,
-                    CustomerSignature = c.CustomerSignature,
+                    //CustomerSignature = c.CustomerSignature,
                     IsSelected = selectedCustomerIds.Contains(c.CustomersId),
+                    //CustomerSignatureUrl = c.CustomerSignature != null ? Url.Action("DisplaySignature", "Customer", new { customerId = c.CustomersId }) : null,
+                    // CustomerSignatureUrl = DisplaySignature(c.CustomersId),
 
+                    //CustomerSignature = c.CustomerSignature != null ? Convert.ToBase64String(c.CustomerSignature) : null,
+                    //CustomerSignatureUrl = c.CustomerSignature != null ? "data:image/jpeg;base64," + Convert.ToBase64String(c.CustomerSignature) : null,
+
+                    // Keep CustomerSignature as byte array, but convert it to Base64 for display
+                    CustomerSignature = c.CustomerSignature,
+                    CustomerSignatureUrl = c.CustomerSignature != null ? "data:image/jpeg;base64," + Convert.ToBase64String(c.CustomerSignature) : null,
 
 
                     // Map the address name to the DeliveryAddresses list
@@ -118,6 +127,23 @@ namespace CustomerCrud.Controllers
 
             return View(viewModel);
         }
+
+
+        //public async Task<IActionResult> DisplaySignature(int customerId)
+        //{
+        //    // Retrieve the customer by ID from the database
+        //    var customer = await _context.Customers
+        //        .FirstOrDefaultAsync(c => c.CustomersId == customerId);
+
+        //    if (customer != null && customer.CustomerSignature != null)
+        //    {
+        //        // Return the signature as an image
+        //        return File(customer.CustomerSignature, "image/jpeg");  // Adjust MIME type if necessary (e.g., "image/png")
+        //    }
+
+        //    return NotFound();  // Return 404 if no signature found
+        //}
+
 
 
         public async Task<IActionResult> Index1(int page = 1, int pageSize = 5, string sortField = "CustomerName", string sortOrder = "asc", string selectedIds = "")
@@ -802,10 +828,18 @@ namespace CustomerCrud.Controllers
         }
 
 
-        private async Task<string> SaveCustomerPhotoAsync(IFormFile photo, string customFileName)
+       
+
+        private async Task<IActionResult> SaveCustomerPhotoAsync(IFormFile photo, string customFileName)
         {
             if (photo != null && photo.Length > 0)
             {
+                // Check the file size (must be less than 100 KB)
+                if (photo.Length > 100 * 1024)  // 100 KB in bytes
+                {
+                    return Json(new { success = false, message = "File size exceeds the maximum limit of 100 KB." });
+                }
+
                 // Define the folder path where you want to save the image
                 var folderPath = Path.Combine(_env.WebRootPath, "images");
 
@@ -816,13 +850,35 @@ namespace CustomerCrud.Controllers
                 }
 
                 // Get the file extension
-                var fileExtension = Path.GetExtension(photo.FileName);
+                var fileExtension = Path.GetExtension(photo.FileName).ToLower();
 
-                // Use custom file name with the original file extension (or a custom extension if needed)
+                // Allow only image extensions (e.g., .jpg, .jpeg, .png)
+                if (fileExtension != ".jpg" && fileExtension != ".jpeg" && fileExtension != ".png")
+                {
+                    return Json(new { success = false, message = "Invalid file type. Only .jpg, .jpeg, or .png files are allowed." });
+                   // return "Invalid file type. Only .jpg, .jpeg, or .png files are allowed.";
+                }
+
+                // Generate the custom file name with the original file extension
                 var fileName = customFileName + fileExtension;
 
                 // Define the full file path
                 var filePath = Path.Combine(folderPath, fileName);
+
+                // Check the image dimensions (must be at least 300x300)
+                using (var stream = new MemoryStream())
+                {
+                    await photo.CopyToAsync(stream);
+                    using (var image = System.Drawing.Image.FromStream(stream))
+                    {
+                        if (image.Width != 300 || image.Height != 300)
+                        {
+                            return Json(new { success = false, message = "Image dimensions must be at least 300x300 pixels." });
+
+                            //return ";
+                        }
+                    }
+                }
 
                 // Save the file to the server
                 using (var stream = new FileStream(filePath, FileMode.Create))
@@ -831,28 +887,63 @@ namespace CustomerCrud.Controllers
                 }
 
                 // Return the relative path to the image
-                return "/images/" + fileName;
-            }
-            return null;
-        }
-
-        private async Task<byte[]> ConvertFileToByteArray(IFormFile file)
-        {
-            if (file != null && file.Length > 0)
-            {
-                using (var memoryStream = new MemoryStream())
-                {
-                    await file.CopyToAsync(memoryStream); // Copy the file content to the memory stream
-                    return memoryStream.ToArray(); // Convert the memory stream content to a byte array
+               // return "/images/" + fileName;
+                return Json(new { success = true, message = "/images/" + fileName });
                 }
-            }
-            return null;
+
+            return Json(new { success = false, message = "No file uploaded" });
+
+            //return "No file uploaded.";
         }
 
 
+    
+
+       
+
+        private async Task<(string message, byte[] fileData)> ConvertFileToByteArray(IFormFile file)
+            {
+                if (file != null && file.Length > 0)
+                {
+                    // Check the file size (must be less than 100 KB)
+                    if (file.Length > 100 * 1024)  // 100 KB in bytes
+                    {
+                        return ("File size exceeds the maximum limit of 100 KB.", null);
+                    }
+
+                    // Get the file extension and validate that it's an image (JPEG, PNG, etc.)
+                    var fileExtension = Path.GetExtension(file.FileName).ToLower();
+                    if (fileExtension != ".jpg" && fileExtension != ".jpeg" && fileExtension != ".png")
+                    {
+                        return ("Invalid file type. Only .jpg, .jpeg, or .png files are allowed.", null);
+                    }
+
+                    // Check the image dimensions (must be between 80x80 and 300x300)
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        await file.CopyToAsync(memoryStream);  // Copy the file content to the memory stream
+                        using (var image = System.Drawing.Image.FromStream(memoryStream))  // Load the image
+                        {
+                            if (image.Height != 80 || image.Width != 300) //|| image.Height == 80 || image.Height == 300
+                        {
+                                return ("Image dimensions must be between  300x80 pixels.", null);
+                            }
+
+                            // If everything is valid, return the byte array and a success message
+                            return ("File uploaded successfully.", memoryStream.ToArray());
+                        }
+                    }
+                }
+
+                return ("No file uploaded.", null);
+            }
 
 
-        [HttpPost]
+
+
+
+
+    [HttpPost]
         public async Task<IActionResult> Create(CustomerCreateViewModel viewModel)
         {
             try
@@ -915,11 +1006,49 @@ namespace CustomerCrud.Controllers
                 }
 
 
-              
-                    var customerPhoto = await SaveCustomerPhotoAsync(viewModel.CustomerPhoto, customerNumber);
+                var customerPhoto = "";
 
-                var sign = await ConvertFileToByteArray(viewModel.CustomerSignature);
 
+                //var customerPhotoCheck = await SaveCustomerPhotoAsync(viewModel.CustomerPhoto, customerNumber);
+
+                //if (customerPhotoCheck.Value.success == true)
+                //{
+
+                //}
+
+                var result = await SaveCustomerPhotoAsync(viewModel.CustomerPhoto, customerNumber);
+                var jsonResult = result as JsonResult;
+
+                if (jsonResult != null)
+                {
+                    var jsonData = jsonResult.Value as dynamic;
+                    if (jsonData.success == true)
+                    {
+                        customerPhoto = jsonData.message;
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = jsonData.message });
+                    }
+                }
+
+
+                byte[] sign = null;
+
+                var (message, fileData) = await ConvertFileToByteArray(viewModel.CustomerSignature);
+
+                
+                if (message == "File uploaded successfully.")
+                {
+                    sign = fileData;
+                }
+                else
+                {
+                    Console.WriteLine(message);
+                    return Json(new { success = false, message = message });
+                    // Display the error message to the user
+                    
+                }
 
                 viewModel.Addresses = addrss;
 
