@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
 
-
+    @* dataTable  *@
     <link rel="stylesheet" href="~/jsc/datatables.css" />
 
 
@@ -79,6 +79,8 @@
 </head>
 
 <body>
+    <div id="google_translate_element"></div>
+
     <header class="bg-white border-bottom box-shadow mb-3">
         <nav class="navbar navbar-expand navbar-light">
             <div class="container-fluid">
@@ -107,6 +109,10 @@
         </div>
     </div>
 
+
+    
+
+
     <footer class="border-top footer text-muted text-center">
         <div class="container">
             &copy; 2024 - CustomerCrud - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
@@ -126,7 +132,24 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 
+
+    @* datatable *@
     <script src="~/jsc/datatables.js"></script>
+
+
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'af,sq,am,ar,hy,az,eu,be,bn,bs,bg,ca,ceb,ny,zh-CN,zh-TW,co,hr,cs,da,nl,en,eo,et,tl,fi,fr,fy,gl,ka,de,el,gu,ht,ha,haw,iw,hi,hmn,hu,is,ig,id,ga,it,ja,jw,kn,kk,km,ko,ku,ky,lo,la,lv,lt,lb,mk,mg,ms,ml,mt,mi,mr,mn,my,ne,no,or,ps,fa,pl,pt,pa,ro,ru,sm,gd,sr,st,sn,sd,si,sk,sl,so,es,su,sw,sv,tg,ta,te,th,tr,uk,ur,ug,uz,vi,cy,xh,yi,yo,zu',
+                layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 

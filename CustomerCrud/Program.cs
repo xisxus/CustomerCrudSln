@@ -17,8 +17,7 @@ ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer
-(builder.Configuration.GetConnectionString("connection")));
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("connection")));
 
 var app = builder.Build();
 
